@@ -1,0 +1,3 @@
+name	formula	adduct_plus	adduct_minus	ms_file	ms2_reference_tsv
+LGD4033	C14 H12 F6 N2 O	H	H	input/LGD_DIA_peak-picked.mzML	
+LGD4033_formate	C14 H12 F6 N2 O		HCOO	input/LGD_DIA_peak-picked.mzML	
