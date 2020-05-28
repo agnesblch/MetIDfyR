@@ -1,0 +1,2 @@
+name	formula	adduct_plus	adduct_minus	ms_file	ms2_reference_tsv
+molecule_name	formula_with_spaces	adduct_plus	adduct_minus	path_to_mzML	path_to_ms2_reference
