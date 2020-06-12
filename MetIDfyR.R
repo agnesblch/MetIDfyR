@@ -311,31 +311,37 @@ for(row in 1:nrow(data_tsv)){
             mono_ppm = c(mono_ppm, current_ms$exp_ppm[!is.na(current_ms$exp_ppm)][1])
 
             ggparr_ms = ggarrange(ggp, ggp_ms)
-
-            # If there is a reference MS2
-            if(!is.na(ms2_ref)){
-              data_ms2 = compareMS2(ms_file[[pol]], optim_transfo, ms2_ref[[1]], mz_ref[[1]], unique(plot_chromato$mz),
-                                    unique(current_ms$rtime), wdw_mz = wdw_mz_ms2, tol_mz = mz_ppm)
-              # If there is a signal in MS2
-              ggp_ms2 = doMS2(data_ms2)
-              dotp_ms2 = c(dotp_ms2, ifelse(is.null(data_ms2$dotp_ms2), 0, data_ms2$dotp_ms2))
-
-              if(length(data_ms2) > 0){
-                #write table with match m/z
-                filename_tsv = paste0("table_", current_formula, "_", unique(current_ms$index), "_",
-                                      ifelse(out_polarity=="POSNEG", pol, ""), "_", out_polarity,".tsv")
-                write_tsv(data_ms2$match, file.path(plot_path, filename_tsv))
+            
+            if( 2 %in% unique(msLevel(ms_file[[pol]])) ){
+              # If there is a reference MS2
+              if(!is.na(ms2_ref)){
+                data_ms2 = compareMS2(ms_file[[pol]], optim_transfo, ms2_ref[[1]], mz_ref[[1]], unique(plot_chromato$mz),
+                                      unique(current_ms$rtime), wdw_mz = wdw_mz_ms2, tol_mz = mz_ppm)
+                # If there is a signal in MS2
+                ggp_ms2 = doMS2(data_ms2)
+                dotp_ms2 = c(dotp_ms2, ifelse(is.null(data_ms2$dotp_ms2), 0, data_ms2$dotp_ms2))
+                
+                if(length(data_ms2) > 0){
+                  #write table with match m/z
+                  filename_tsv = paste0("table_", current_formula, "_", unique(current_ms$index), "_",
+                                        ifelse(out_polarity=="POSNEG", pol, ""), "_", out_polarity,".tsv")
+                  write_tsv(data_ms2$match, file.path(plot_path, filename_tsv))
+                }
+              }else{
+                data_ms2 = compareMS2(ms_file[[pol]], optim_transfo, mz_exp = unique(plot_chromato$mz)[1],
+                                      rt_exp = unique(current_ms$rtime), exists_ref_ms2 = F, wdw_mz = wdw_mz_ms2)
+                ggp_ms2 = doMS2(data_ms2, exists_ref = F)
+                dotp_ms2 = c(dotp_ms2, 0)
               }
+              
+              #final ggplot with chromatogram and mass spectrum
+              ggp_tot = ggarrange(ggparr_ms, ggp_ms2, nrow=2)
             }else{
-              data_ms2 = compareMS2(ms_file[[pol]], optim_transfo, mz_exp = unique(plot_chromato$mz)[1],
-                                    rt_exp = unique(current_ms$rtime), exists_ref_ms2 = F, wdw_mz = wdw_mz_ms2)
-              ggp_ms2 = doMS2(data_ms2, exists_ref = F)
+              data_ms2 = c()
               dotp_ms2 = c(dotp_ms2, 0)
+              ggp_tot = ggparr_ms
             }
-
-            #final ggplot with chromatogram and mass spectrum
-            ggp_tot = ggarrange(ggparr_ms, ggp_ms2, nrow=2)
-
+            
             # Annote figure with MS2 score based on common peaks
             perc_peak = 0
             # If there is ms2 data and there is at least 1 match with reference

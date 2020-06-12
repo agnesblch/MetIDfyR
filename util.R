@@ -219,7 +219,8 @@ check_combn = function(transfo, data, combin){
   do_combn = apply(combin, 1, function(cmbn){
     
     #return boolean, TRUE if there is no negative count so the combination is possible
-    return( sum(getCount(transfo, data, cmbn, "boolean") < 0) == 0 )
+    tab_count = getCount(transfo, data, cmbn, "boolean")
+    return( sum(Filter(is.numeric, tab_count) < 0) == 0 )
     
   })
   
@@ -447,7 +448,7 @@ getMS2Reference = function(){
   # Search for MS2 reference in both polarities 
   ref_data = list(plus = integer(), minus = integer())
   for(pol in c("minus", "plus")){
-    if(do[[pol]]){
+    if( do[[pol]] && 2 %in% unique(msLevel(ms_file[[pol]])) ){
       
       if( !empty(ms_data[[pol]]) ){ rt = unique(ms_data[[pol]]$rtime)}else rt = integer()
       
