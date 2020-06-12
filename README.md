@@ -1,5 +1,5 @@
 # MetIDfyR
-This tool allows prediction and detection of metabolites in a sample (mzML file). The pipeline returns as output spectrum for each metabolites if there is a signal in positive and/or negative analysis.
+MetIDfyR is an open-source, cross-platform and versatile R script to predict and detect metabolites in mass spectrometry data (mzML) based on the raw formula of the drug of interest.
 
 ## Need : 
 - a configuration file with the parameter (see TEMPLATE_config.R). 
@@ -18,19 +18,23 @@ system("Rscript MetIDfyR.R -i path-to-input-file -o output-directory -c config-f
 ## Example :
 To test MetIDfyR, you can perform analyses using provided LGD-4033 and Cocaine datasets. 
 
-You can unzip the datasets from Rstudio using :
+1. Clone the MetIDfyR repository.
+2. Create a new R project in the MetIDfyR directory.
+3. Unzip the example datasets using the following command in R console :
 ```
 unzip("input/LGD_DIA_peak-picked.mzML.zip",exdir = "input")
 unzip("input/U_H_COCA_peak-picked.mzML.zip",exdir = "input")
 ```
-
-Then you can launch MetIDfyR from Rstudio using :
+4. Launch MetIDfyR from R console using :
 ```
 system("Rscript MetIDfyR.R -i input/lgd_DIA_peak-picked.tsv -o LGD4033_results -c input/config_LGD.R")
 system("Rscript MetIDfyR.R -i input/cocaine_peak-picked.tsv -o Cocaine_results -c input/config_cocaine.R")
 ```
+5. When the run is done, open the file "ui.R" in MetApp directory and click "run app" to launch MetApp.
+6. Visualize and generate a PDF report using the "Visualization" tab in the app.
 
 ## Dependencies : 
+Pacman package is used to install all dependencies needeed to run MetIDfyR.
 - pacman
 - BiocManager
 - optparse
@@ -50,6 +54,6 @@ system("Rscript MetIDfyR.R -i input/cocaine_peak-picked.tsv -o Cocaine_results -
 
 ## MetApp
 Shiny application to display resulting metabolites figures.
-This app allow to save PDF report for selected metabolites thanks to the packages "rmarkdown" and "rsvg". 
+This app saves PDF report for selected metabolites thanks to the packages "rmarkdown" and "rsvg". 
 The SVG figures are printed in the report using the R package "magick" (https://cran.rstudio.com/bin/windows/contrib/3.6/magick_2.3.zip). 
 
