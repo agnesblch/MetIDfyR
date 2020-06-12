@@ -1,5 +1,5 @@
-# MetIDfyR
-MetIDfyR is an open-source, cross-platform and versatile R script to predict and detect metabolites in mass spectrometry data (mzML) based on the raw formula of the drug of interest.
+# `MetIDfyR`
+`MetIDfyR` is an open-source, cross-platform and versatile R script to predict and detect metabolites in mass spectrometry data (mzML) based on the raw formula of the drug of interest.
 
 ## Need : 
 - a configuration file with the parameter (see TEMPLATE_config.R). 
@@ -16,16 +16,16 @@ system("Rscript MetIDfyR.R -i path-to-input-file -o output-directory -c config-f
 ```
 
 ## Example :
-To test MetIDfyR, you can perform analyses using provided LGD-4033 and Cocaine datasets. 
+To test `MetIDfyR`, you can perform analyses using provided LGD-4033 and Cocaine datasets. 
 
-1. Clone the MetIDfyR repository.
-2. Create a new R project in the MetIDfyR directory.
+1. Clone the `MetIDfyR` repository.
+2. Create a new R project in the `MetIDfyR` directory.
 3. Unzip the example datasets using the following command in R console :
 ```
 unzip("input/LGD_DIA_peak-picked.mzML.zip",exdir = "input")
 unzip("input/U_H_COCA_peak-picked.mzML.zip",exdir = "input")
 ```
-4. Launch MetIDfyR from R console using :
+4. Launch `MetIDfyR` from R console using :
 ```
 system("Rscript MetIDfyR.R -i input/lgd_DIA_peak-picked.tsv -o LGD4033_results -c input/config_LGD.R")
 system("Rscript MetIDfyR.R -i input/cocaine_peak-picked.tsv -o Cocaine_results -c input/config_cocaine.R")
@@ -34,7 +34,7 @@ system("Rscript MetIDfyR.R -i input/cocaine_peak-picked.tsv -o Cocaine_results -
 6. Visualize and generate a PDF report using the "Visualization" tab in the app.
 
 ## Dependencies : 
-Pacman package is used to install all dependencies needeed to run MetIDfyR.
+Pacman package is used to install all dependencies needeed to run `MetIDfyR`.
 - pacman
 - BiocManager
 - optparse
@@ -56,4 +56,8 @@ Pacman package is used to install all dependencies needeed to run MetIDfyR.
 Shiny application to display resulting metabolites figures.
 This app saves PDF report for selected metabolites thanks to the packages "rmarkdown" and "rsvg". 
 The SVG figures are printed in the report using the R package "magick" (https://cran.rstudio.com/bin/windows/contrib/3.6/magick_2.3.zip). 
+
+## Citation
+>Delcourt V, Barnabé A, Loup B, Garcia P, André F, Chabot B, Trévisiol S, Moulard Y, Popot M-A & Bailly-Chouriberry L -
+> *`MetIDfyR`, an Open-Source R Package to Decipher Small-Molecule Drugs Metabolism Through High Resolution Mass Spectrometry*. 2020. ChemRxiv. Preprint. https://doi.org/10.26434/chemrxiv.12368963.v1
 
