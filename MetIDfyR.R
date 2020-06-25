@@ -170,14 +170,14 @@ for(row in 1:nrow(data_tsv)){
                         mz = ifelse(data$adduct_minus=="H",
                                     -getMolecule(data$adduct_minus)$exactmass,
                                     getMolecule(data$adduct_minus)$exactmass))
-    ms_file$minus = readMSData(data$ms_file, mode="onDisk") %>% filterPolarity(polarity = 0)
+    ms_file$minus = readMSData(data$ms_file, mode="onDisk") %>% filterPol(polarity = 0)
   }
 
   if(do$plus){
     #get adduct in pos
     adduct$plus = list(formula = data$adduct_plus,
                        mz = getMolecule(data$adduct_plus)$exactmass)
-    ms_file$plus = readMSData(data$ms_file,mode="onDisk") %>% filterPolarity(polarity = 1)
+    ms_file$plus = readMSData(data$ms_file,mode="onDisk") %>% filterPol(polarity = 1)
   }
 
    # If the parameter is not empty

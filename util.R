@@ -4,6 +4,17 @@
 # # #
 
 ###
+# Filter of the polarity  
+# Need a mzML object 
+###
+
+filterPol = function(object, polarity) {
+  if (missing(polarity)) return(object)
+  object <- object[polarity(object) %in% polarity]
+  object
+}
+
+###
 # Search closest value from target in a vector
 # Need : vector x, target value to match and tolerance 
 # Return : sorted value depending of the target distance if tolerance = NULL,
@@ -537,12 +548,13 @@ compareMS2 = function(ms_file, optim_transfo, ref_ms2, mz_ref, mz_exp, rt_exp, w
       for(ref_peak in ref_max_peaks) {
         tmp_mz_peak = ref_ms2@mz[ref_peak]
         
-        # Get each transformation possible
+        # Get each transformation possible for the current combinaison of transformation
         split_transfo = strsplit(optim_transfo, ";")[[1]]
         cmbn = c()
         
         for(nb in 1:length(split_transfo)){
-          cmbn = append( cmbn, asplit((arrangements::combinations(split_transfo, nb)), 1))
+          tmp = arrangements::combinations(split_transfo, nb)
+          cmbn = append( cmbn, split(tmp, row(tmp)))
         }
         
         cmbn = unique(cmbn)
