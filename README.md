@@ -34,7 +34,8 @@ system("Rscript MetIDfyR.R -i input/cocaine_peak-picked.tsv -o Cocaine_results -
 6. Visualize and generate a PDF report using the "Visualization" tab in the app.
 
 ## Dependencies : 
-Pacman package is used to install all dependencies needeed to run `MetIDfyR`.
+MetIDfyR was developed and tested on <a href="https://www.r-project.org/" title="More about R">R</a> version 3.6.1. 
+Pacman package is used to install all dependencies needed to run `MetIDfyR`.
 - pacman
 - BiocManager
 - optparse
