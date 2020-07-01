@@ -16,7 +16,7 @@ doChromato = function(chrom_dataframe, line_size = 0.5, alpha = 0.4){
   gpl = ggplot(chrom_dataframe, aes(x=rt/60, y=intensity, alpha=alpha,
                                     group=isotope, color=isotope))+
     geom_line(size=line_size) +
-    geom_text(aes(label = ifelse(chrom_dataframe$index > 0, chrom_dataframe$index, '')),
+    geom_text(aes(label = ifelse(index > 0, index, '')),
               hjust = -0.2, vjust= 1, col="black", size=3) +
     theme_classic() +
     guides(alpha = FALSE) +  #don't show legend for alpha
@@ -60,8 +60,8 @@ doMassSpectrum = function(data_ms, polarity = NULL){
     geom_segment(aes(xend=mz, yend=0, linetype = "Experimental"), col = "blue", alpha = 0.8) +
     theme_classic() + guides(alpha = F, colour  = F, size=F) +
     geom_label_repel(
-      aes(mz, perctot, label = ifelse(!is.na(abund_exp$exp_ppm), 
-                                      paste0(round(mz,5), "\n(", sprintf("%+g", round(abund_exp$exp_ppm, 3)), " ppm)"), '')),
+      aes(mz, perctot, label = ifelse(!is.na(exp_ppm), 
+                                      paste0(round(mz,5), "\n(", sprintf("%+g", round(exp_ppm, 3)), " ppm)"), '')),
       size = 3,
       point.padding = unit(0.1, "lines"),
       box.padding = unit(1, "lines"),

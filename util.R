@@ -526,7 +526,7 @@ compareMS2 = function(ms_file, optim_transfo, ref_ms2, mz_ref, mz_exp, rt_exp, w
       # Select the max intensity peaks except precursor
       precursor_ref = close_match( ref_ms2@mz, mz_ref, tolerance = mz_ref[1]/1e6*tol_mz ) 
       precursor_exp = close_match(exp_ms2@mz, mz_exp, tolerance = mz_exp[1]/1e6*tol_mz ) 
-      if(length(precursor_ref)){
+      if(length(precursor_ref) > 1){
         # Keep peaks which are not the precursor, are above the intensity threshold 
         ref_max_peaks = which( !ref_ms2@mz %in% ref_ms2@mz[precursor_ref] & ref_ms2@intensity >= max(ref_ms2@intensity)*noise_fraction )
       }else{
@@ -598,8 +598,8 @@ compareMS2 = function(ms_file, optim_transfo, ref_ms2, mz_ref, mz_exp, rt_exp, w
       
       combine_plot_data = as_tibble(
         rbind.data.frame(
-          cbind.data.frame(mz = plot_ref@mz, intensity = plot_ref@intensity, type=type_ref, index = index_ref), 
-          cbind.data.frame(mz = plot_exp@mz[plot_exp@intensity > 0], 
+          cbind.data.frame(mz = round(plot_ref@mz,5), intensity = plot_ref@intensity, type=type_ref, index = index_ref), 
+          cbind.data.frame(mz = round(plot_exp@mz[plot_exp@intensity > 0],5), 
                            intensity = -plot_exp@intensity[plot_exp@intensity > 0], 
                            type=type_exp[plot_exp@intensity > 0], index = index_exp)))
       
