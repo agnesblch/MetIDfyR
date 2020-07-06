@@ -325,7 +325,7 @@ getMassSpectrum = function(ms_file, current_mlc, adduct, chrom_dataframe, masse_
         abund_th$mz = abund_th$mz + adduct$mz + masse_electron
         abund_th$perctot = abund_th$intensity/max(abund_th$intensity)
         
-        mass_spectrum = grep(rtime*60, rtime(ms_file))
+        mass_spectrum = which(rtime(ms_file) == rtime*60)
         
         current_spectra = ms_file[[ mass_spectrum ]]
         mass_wd = which( current_spectra@mz > min(abund_th$mz)-1.5 & current_spectra@mz < max(abund_th$mz)+4.5 )
