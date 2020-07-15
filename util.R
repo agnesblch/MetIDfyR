@@ -94,34 +94,35 @@ getCombiFormula = function(data, transfo, list_cmbn){
   info_all_combi = plyr::alply(list_cmbn, 1, function(cmbn) {
     
     molecule = getMolecules(data$formula)
-    i=1 ; combi_form = c(molecule$formula) ; combi_diff = c("") ; transfo_name = c(data$name)
     
-    # If there is less than 3 transformation of phase 2 in the combination
-    if(sum(transfo$phase[cmbn]==2) <= 2){
-      continue_cmbn = check_combn(transfo, data, matrix(cmbn[1], nrow=1)) 
-      #for each transformation of the combination
-      while(i <= length(cmbn) & continue_cmbn){
-        index=cmbn[i]
-        #add, remove or replace atoms depending on the transformation type
-        res_transfo = switch(transfo$type[index],
-                             'add'= addMolecules(combi_form[i], getMolecules(transfo$add[index])$formula),
-                             'remove' = subMolecules(combi_form[i], getMolecules(transfo$remove[index])$formula),
-                             'replace' = replaceMolecules(combi_form[i], getMolecules(transfo$add[index])$formula, 
-                                                          getMolecules(transfo$remove[index])$formula)
-        )
-        combi_form = append(combi_form, res_transfo$formula)
-        combi_diff = append(combi_diff, getCount(transfo, data, cmbn[1:i], "difference"))
-        transfo_name = append(transfo_name, paste0(transfo$name[cmbn[1:i]], collapse = ";"))
-        i=i+1
-        # Check if the current combination is possible
-        continue_cmbn = check_combn(transfo, data, matrix(cmbn[1:i], nrow=1))
-      }
+    # Init table with 0 transformation 
+    i=1 ; info_transfo = tibble(Molecule = data$name, Transformation = data$name, Formula = molecule$formula, 
+                                Diff = "", Nb_Transfo = 0)
+    
+    
+    continue_cmbn = check_combn(transfo, data, matrix(cmbn[1], nrow=1)) 
+    #for each transformation of the combination
+    # while i <= number of transformations, combinaison is valid and the number of phase 2 transformation is <= 2
+    while(i <= length(cmbn) & continue_cmbn & sum(transfo$phase[cmbn[1:i]]==2) <= 2){
+      index=cmbn[i]
+      #add, remove or replace atoms depending on the transformation type
+      res_transfo = switch(transfo$type[index],
+                           'add'= addMolecules(info_transfo$Formula[i], getMolecules(transfo$add[index])$formula),
+                           'remove' = subMolecules(info_transfo$Formula[i], getMolecules(transfo$remove[index])$formula),
+                           'replace' = replaceMolecules(info_transfo$Formula[i], getMolecules(transfo$add[index])$formula, 
+                                                        getMolecules(transfo$remove[index])$formula)
+      )
+      info_transfo = info_transfo %>% add_row(Molecule = data$name, Transformation = paste0(transfo$name[cmbn[1:i]], collapse = ";"),
+                                              Formula = res_transfo$formula, Diff = getCount(transfo, data, cmbn[1:i], "difference"), 
+                                              Nb_Transfo = i )
       
-      if(continue_cmbn){
-        info_transfo = cbind(data$name, transfo_name, combi_form, combi_diff, 0:length(cmbn))
-        colnames(info_transfo) = c("Molecule", "Transformation", "Formula", "Diff", "Nb_Transfo")
-        return(info_transfo)
-      }
+      i=i+1
+      # Check if the current combination is possible
+      continue_cmbn = check_combn(transfo, data, matrix(cmbn[1:i], nrow=1))
+    }
+    
+    if(continue_cmbn){
+      return(info_transfo)
     }
     
   })
