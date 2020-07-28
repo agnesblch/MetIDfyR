@@ -168,15 +168,15 @@ for(row in 1:nrow(data_tsv)){
     #get adduct in neg
     adduct$minus = list(formula = data$adduct_minus,
                         mz = ifelse(data$adduct_minus=="H",
-                                    -getMolecule(data$adduct_minus)$exactmass,
-                                    getMolecule(data$adduct_minus)$exactmass))
+                                    -getMolecule(data$adduct_minus)$isotopes[[1]][1,1],
+                                    getMolecule(data$adduct_minus)$isotopes[[1]][1,1]))
     ms_file$minus = readMSData(data$ms_file, mode="onDisk") %>% filterPol(polarity = 0)
   }
 
   if(do$plus){
     #get adduct in pos
     adduct$plus = list(formula = data$adduct_plus,
-                       mz = getMolecule(data$adduct_plus)$exactmass)
+                       mz = getMolecule(data$adduct_plus)$isotopes[[1]][1,1])
     ms_file$plus = readMSData(data$ms_file,mode="onDisk") %>% filterPol(polarity = 1)
   }
 
@@ -350,7 +350,7 @@ for(row in 1:nrow(data_tsv)){
               perc_peak = round(max(data_ms2$match$index_peak) / nb_ref_peaks*100,2)
 
               ggp_tot = annotate_figure(ggp_tot, bottom = text_grob(
-                paste0("Percentage of common peaks : ", perc_peak, "%"), size = 8 ))
+                paste0("Percentage of common peaks : ", perc_peak, "%", " / Dotp : ", round(dotp_ms2[length(dotp_ms2)],3)), size = 8 ))
             }
 
             # Plot title
@@ -371,12 +371,12 @@ for(row in 1:nrow(data_tsv)){
           peak_info = unique(ms_data[, c("rtime", "dotp", "rscore", "abscore", "peak_intensity", "index")])
           
           tmp_table = rbind.data.frame(tmp_table,
-                                       cbind.data.frame(name = data$name, formula = current_formula, polarity = pol,
+                                       cbind.data.frame(name = data$name, formula = current_formula, polarity = ifelse(pol=="plus", "Positive mode", "Negative mode"),
                                                         adduct = unique(plot_chromato$adduct), mz = round(min(plot_chromato$mz),5),
                                                         transfo = optim_transfo, diff = current_diff, rt = round(peak_info$rtime, 3),
-                                                        common_ms2_peak = perc_common_peak, dotp = round(peak_info$dotp, 3),
-                                                        rscore = round(peak_info$rscore, 3), abscore = round(peak_info$abscore, 3),
-                                                        dotp_ms2 = round(dotp_ms2, 3), mono_ppm = mono_ppm,
+                                                        # dotp = round(peak_info$dotp, 3), rscore = round(peak_info$rscore, 3), 
+                                                        abscore = round(peak_info$abscore, 3), dotp_ms2 = round(dotp_ms2, 3), 
+                                                        common_ms2_peak = perc_common_peak, mono_ppm = mono_ppm,
                                                         intensity = peak_info$peak_intensity, index_peak = peak_info$index,
                                                         nb_transfo = nb_transfo))
 

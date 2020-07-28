@@ -220,8 +220,8 @@ shinyServer(function(input, output, session) {
       total_table[num_col] = as_tibble(apply(total_table[num_col], 2, function(col) round(col, 3)))
       total_table$intensity = scales::scientific(total_table$intensity)
       total_table = plyr::rename(total_table, c("name"="Name", "formula"="Formula", "polarity"="Polarity", "adduct"="Adduct", "mz"="m/z", 
-                                           "diff"="Change", "rt"="RT", "common_ms2_peak"="MS2p", "dotp"="idotp", "intensity"="Intensity", 
-                                           "abscore"="iAScore", "dotp_ms2"="MS2 dotp", "mono_ppm"="Delta m/z (ppm)",
+                                           "diff"="Change", "rt"="RT", "intensity"="Intensity", "abscore"="iAScore", 
+                                           "dotp_ms2"="MS2 dotp", "common_ms2_peak"="MS2p", "mono_ppm"="Delta m/z (ppm)",
                                            "index_peak"="Index", "nb_transfo"="Nb Transfo", "score"="Score"))
       total_table %>%
         arrange(desc(Score))
@@ -247,7 +247,7 @@ shinyServer(function(input, output, session) {
     })
     
     updateCheckboxGroupInput(session, "columns", choices = names(Product()),
-                             selected =c("Formula", "Polarity", "Change", "m/z", "RT", "MS2p", "idotp", "iAScore",
+                             selected =c("Formula", "Polarity", "Change", "m/z", "RT", "MS2p", "iAScore",
                                          "MS2 dotp", "Delta m/z (ppm)", "Intensity", "Score"))
     #Print table
     output$table <- DT::renderDataTable({

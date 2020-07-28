@@ -52,7 +52,7 @@ doMassSpectrum = function(data_ms, polarity = NULL){
   
   abund_exp = data_ms[which(data_ms$type == "exp"),]
   abund_th = data_ms[which(data_ms$type == "th"),]
-  subtit = paste0( abund_exp$index, " / rtime : ", round(abund_exp$rtime, 2), " / dotproduct : ", round(abund_exp$dotp, 4),
+  subtit = paste0( abund_exp$index, " / rtime : ", round(abund_exp$rtime, 2), " / dotproduct : ", round(abund_exp$abscore, 4),
                    " ", polarity)
   
   ggp = ggplot(data=abund_exp, aes(mz, perctot)) +
@@ -109,7 +109,7 @@ doMS2 = function(data_ms2, exists_ref = T){
       
       ggplot(data_ms2, aes(mz, intensity, color = type)) +
         theme_classic() + geom_hline(yintercept = 0, size=0.5, alpha = 0.8) +
-        geom_segment(aes(xend=data_ms2$mz, yend=0),
+        geom_segment(aes(xend=mz, yend=0),
                      color = MyColor) +
         geom_point(aes(mz, intensity), size = 1,
                    color = MyColor) +
