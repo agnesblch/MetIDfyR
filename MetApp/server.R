@@ -264,7 +264,7 @@ shinyServer(function(input, output, session) {
         peak = data$Index
         find_figure = list.files(path(), pattern = paste0(form, "_", peak), recursive = T, full.names = T)
         
-        polar = ifelse(data$Polarity=="plus", "POS", "NEG")
+        polar = ifelse(data$Polarity=="Positive mode", "POS", "NEG")
         updateTabsetPanel(session, "polarity", selected = polar)
         
         updateSelectInput(session, input$polarity, selected = form )
