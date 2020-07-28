@@ -385,14 +385,10 @@ getChromato = function(ms_file, molecule, adduct, masse_electron,
                        max_nb_iso = 5, min_mz = 200, min_intensity = 1e5, min_scan = 5, mz_precision = 5){
   
   #get mz for each isotopes 
-  nb_iso = 1 ; tmp_iso = getIsotope(molecule, nb_iso)
-  list_iso = matrix(ncol=2, nrow=0) 
-  colnames(list_iso)=c("mz", "intensity")  
-  while(nb_iso <= max_nb_iso && tmp_iso[2] >= 0.1){
-    list_iso = rbind(list_iso, tmp_iso)
-    nb_iso = nb_iso +1
-    tmp_iso = getIsotope(molecule, nb_iso)
-  }
+  tmp_iso = which(getIsotope(molecule)[2,] >= 0.1)
+  list_iso = matrix(ncol=3, nrow=0) 
+  colnames(list_iso)=c("mz", "intensity", "nb_iso")  
+  for(i in tmp_iso) list_iso = rbind(list_iso, c(getIsotope(molecule, i), i))
   
   list_iso = as_tibble(list_iso)
   list_iso$perctot = list_iso$intensity/list_iso$intensity[1]
@@ -422,7 +418,7 @@ getChromato = function(ms_file, molecule, adduct, masse_electron,
         #if enough signal intensity and number of scans
         if(nb_above_thr >= min_scan){
           chrom_dataframe = add_row(chrom_dataframe, rt = chrs[[1]]@rtime, intensity = intensity_iso, nb_scan = nb_above_thr,
-                                    isotope = iso, adduct = adduct$formula, mz = mz_adduct[iso])
+                                    isotope = list_iso$nb_iso[iso], adduct = adduct$formula, mz = mz_adduct[iso])
           signal = T
         }
         
@@ -607,7 +603,8 @@ compareMS2 = function(ms_file, optim_transfo, ref_ms2, mz_ref, mz_exp, rt_exp, w
       # Compute MS2 dotp and recalibrate shifted peaks
       exp_data = combine_plot_data[grep("exp", combine_plot_data$type),]
       exp_data$mz_calibrate = combine_plot_data$mz[grep("exp", combine_plot_data$type)]
-      match_peak = match(label_peak$exp_mz, exp_data$mz) 
+      
+      match_peak = match(round(label_peak$exp_mz, 5), exp_data$mz)
       match_peak = match_peak[!is.na(match_peak)]
       
       exp_int = exp_data$intensity
@@ -619,11 +616,15 @@ compareMS2 = function(ms_file, optim_transfo, ref_ms2, mz_ref, mz_exp, rt_exp, w
           exp_data$mz_calibrate[exp_data$type=="precursor_exp"] - ifelse(is.na(mz_diff[[optim_transfo]]), 0, mz_diff[[optim_transfo]])
         
         # Sum intensity for double match peaks
-        exp_int = aggregate(intensity ~ mz_calibrate, data=exp_data, FUN=sum)$intensity
+        exp_int = aggregate(intensity ~ mz_calibrate, data=exp_data, FUN=sum)
+        
+        # Build new MS2 spectrum with calibrate data
+        spec_exp = new("Spectrum2", mz = exp_int$mz_calibrate, intensity = -exp_int$intensity, centroided=T)
+      }else{
+        # Build new MS2 spectrum with calibrate data
+        spec_exp = new("Spectrum2", mz = exp_data$mz_calibrate, intensity = -exp_int, centroided=T)
       }
       
-      # Build new MS2 spectrum with calibrate data
-      spec_exp = new("Spectrum2", mz = unique(exp_data$mz_calibrate), intensity = -exp_int, centroided=T)
       
       return(list( data = combine_plot_data[combine_plot_data$intensity != 0, ], 
                    match = label_peak, 
