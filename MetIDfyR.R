@@ -51,7 +51,7 @@ cat("### Initialisation ###\n")
 data_tsv = read_tsv(opt$input, col_types = cols()) #table containing the molecules
 data_tsv = as_tibble(cbind(data_tsv, fill_table(data_tsv)))
 
-transfo_init = read_tsv(list_transfo, col_types = cols()) #table containing the potential transformation
+transfo_init = getShift(list_transfo) #table containing the potential transformation
 transfo_init$phase = as.factor(transfo_init$phase)
 transfo_init$type = getType(transfo_init)
 
@@ -77,7 +77,7 @@ for(row in 1:nrow(data_tsv)){
            "stringr", "htmlwidgets", "readr")
   })
 
-  transfo = transfo_init
+  transfo = transfo_init ; transfo$possible = TRUE
   data = data_tsv[row, ] ; do = c()
   do$plus = !is.na(data$adduct_plus) ; do$minus = !is.na(data$adduct_minus)
   if(!do$plus) data$adduct_plus = FALSE ; if(!do$minus) data$adduct_minus = FALSE
@@ -89,13 +89,14 @@ for(row in 1:nrow(data_tsv)){
   cat(paste0("### Select combination for ", data$name, " ###\n"))
 
   #check if phase 2 is performed
-  if(bool_phase_2) transfo$possible[which(transfo$phase==2)] = TRUE
+  if(!bool_phase_2) transfo$possible[which(transfo$phase==2)] = FALSE
 
   #check the presence of specifics atoms in the parent drug formula
   for(atom in c("N", "F", "Cl", "Br")){
-    if(atom %in% colnames(data)){
+    # if the atom is not present in the parent drug formula, then it can't be remove
+    if(!atom %in% colnames(data)){
       row_atom=grep(atom, transfo$remove)
-      transfo$possible[row_atom]=TRUE
+      transfo$possible[row_atom] = FALSE
     }
   }
 

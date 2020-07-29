@@ -4,6 +4,31 @@
 # # #
 
 ###
+# Estimate mass shift for each transformation
+# Need a list of transformation
+###
+getShift = function(transfo_path){
+  transfos = read_tsv(transfo_path, col_types = cols())
+  
+  removeshift<-rep(0, nrow(transfos))
+  addshift<-rep(0, nrow(transfos))
+  
+  for(n in 1:nrow(transfos)){
+    if( !is.na(transfos$remove[n]) ){
+      removeshift[n] = getMolecules(transfos$remove[n])$isotopes[[1]][1,1]
+    }
+    if( !is.na(transfos$add[n]) ){
+      addshift[n] = getMolecules(transfos$add[n])$isotopes[[1]][1,1]
+    }
+  }
+  
+  transfos$mass_change = addshift - removeshift
+  
+  return(transfos)
+  
+}
+
+###
 # Filter of the polarity  
 # Need a mzML object 
 ###

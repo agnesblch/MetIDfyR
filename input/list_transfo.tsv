@@ -1,19 +1,19 @@
-name	remove	add	mass_change	possible	phase
-hydroxylation		O	15.99491	TRUE	1
-deoxydation	O		-15.99491	TRUE	1
-carbonyl_reduct	C O		-27.99491	TRUE	1
-amide_carbo	N H2	O H	0.9840156	FALSE	1
-defluorination	H F		-20.00623	FALSE	1
-dechlorination	H Cl		-35.97668	FALSE	1
-debromination	H Br		-79.92616	FALSE	1
-N-dephenylation	C6 H4		-76.0313001	TRUE	1
-demethylation	C H2		-14.01565	TRUE	1
-methylation		C H2	14.01565	TRUE	1
-acetylation		C2 O H2	42.01056	TRUE	1
-reduction		H2	2.01565	TRUE	1
-reduction_O		H2 O	18.01056	TRUE	1
-dehydratation	H2 O		-18.01056	TRUE	1
-decarboxylation	C O2		-43.98983	TRUE	1
-insaturation	H2		-2.01565	TRUE	1
-glucuronylation		C6 H8 O6	176.0320881	FALSE	2
-sulfatation		S O3	79.9568146	FALSE	2
+name	remove	add	phase
+hydroxylation		O	1
+deoxydation	O		1
+carbonyl_reduct	C O		1
+amide_carbo	N H2	O H	1
+defluorination	H F		1
+dechlorination	H Cl		1
+debromination	H Br		1
+N-dephenylation	C6 H4		1
+demethylation	C H2		1
+methylation		C H2	1
+acetylation		C2 O H2	1
+reduction		H2	1
+reduction_O		H2 O	1
+dehydratation	H2 O		1
+decarboxylation	C O2		1
+insaturation	H2		1
+glucuronylation		C6 H8 O6	2
+sulfatation		S O3	2
