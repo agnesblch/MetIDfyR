@@ -371,7 +371,7 @@ for(row in 1:nrow(data_tsv)){
           peak_info = unique(ms_data[, c("rtime", "dotp", "rscore", "abscore", "peak_intensity", "index")])
           
           tmp_table = rbind.data.frame(tmp_table,
-                                       cbind.data.frame(name = data$name, formula = current_formula, polarity = ifelse(pol=="plus", "Positive mode", "Negative mode"),
+                                       cbind.data.frame(name = data$name, formula = current_formula, polarity = pol,
                                                         adduct = unique(plot_chromato$adduct), mz = round(min(plot_chromato$mz),5),
                                                         transfo = optim_transfo, diff = current_diff, rt = round(peak_info$rtime, 3),
                                                         # dotp = round(peak_info$dotp, 3), rscore = round(peak_info$rscore, 3), 
@@ -443,6 +443,8 @@ for(row in 1:nrow(data_tsv)){
       true_isobare = which(BIG_TABLE$formula[isobare] != BIG_TABLE$formula[tab_row])
       if(length(true_isobare) > 0) BIG_TABLE = BIG_TABLE[-isobare[true_isobare],]
     }
+    
+    BIG_TABLE$polarity = ifelse(BIG_TABLE$polarity == "plus", "Positive mode", "Negative mode")
 
     # Write output table
     BIG_TABLE %>%
