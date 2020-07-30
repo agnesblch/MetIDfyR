@@ -377,10 +377,10 @@ getMassSpectrum = function(ms_file, current_mlc, adduct, chrom_dataframe, masse_
             spectrum_data = rbind(spectrum_data, 
                                   cbind(abund_exp, rtime = rtime, type = "exp", dotp = scores$dotp, 
                                         rscore = scores$rscore, abscore = scores$abscore, exp_ppm = NA,
-                                        index=index_peak, peak_intensity = inten_peak),
+                                        index=index_peak, peak_intensity = inten_peak, row.names=NULL),
                                   cbind(abund_th, rtime = rtime, type = "th", dotp = scores$dotp, 
                                         rscore = scores$rscore, abscore = scores$abscore, exp_ppm = NA,
-                                        index=index_peak, peak_intensity = inten_peak))
+                                        index=index_peak, peak_intensity = inten_peak, row.names=NULL))
             #Add mz ppm difference to match peak
             spectrum_data$exp_ppm[spectrum_data$mz %in% scores$exp_ppm$mz & 
                                     spectrum_data$index == index_peak] = scores$exp_ppm$ppm
