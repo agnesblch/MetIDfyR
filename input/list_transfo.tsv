@@ -15,5 +15,5 @@ reduction_O		H2 O	1
 dehydratation	H2 O		1
 decarboxylation	C O2		1
 insaturation	H2		1
-glucuronylation		C6 H8 O6	2
+glucuronidation		C6 H8 O6	2
 sulfatation		S O3	2
