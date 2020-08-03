@@ -547,13 +547,9 @@ compareMS2 = function(ms_file, optim_transfo, ref_ms2, mz_ref, mz_exp, rt_exp, w
       
       # Select the max intensity peaks except precursor
       precursor_ref = close_match( ref_ms2@mz, mz_ref, tolerance = mz_ref[1]/1e6*tol_mz ) 
-      precursor_exp = close_match(exp_ms2@mz, mz_exp, tolerance = mz_exp[1]/1e6*tol_mz ) 
-      if(length(precursor_ref) > 1){
-        # Keep peaks which are not the precursor, are above the intensity threshold 
-        ref_max_peaks = which( !ref_ms2@mz %in% ref_ms2@mz[precursor_ref] & ref_ms2@intensity >= max(ref_ms2@intensity)*noise_fraction )
-      }else{
-        ref_max_peaks = which(ref_ms2@intensity >= max(ref_ms2@intensity)*noise_fraction )
-      }
+      precursor_exp = close_match(exp_ms2@mz, mz_exp, tolerance = mz_exp[1]/1e6*tol_mz )
+      
+      ref_max_peaks = which(ref_ms2@intensity >= max(ref_ms2@intensity)*noise_fraction )
       
       plot_ref = normalize(ref_ms2) ; plot_exp = normalize(exp_ms2)
       type_ref = rep("ref", length(plot_ref@mz)) ; type_ref[precursor_ref] = "precursor_ref"
@@ -637,8 +633,6 @@ compareMS2 = function(ms_file, optim_transfo, ref_ms2, mz_ref, mz_exp, rt_exp, w
       if(length(match_peak)){
         # Unshift shifted peaks and experimental precursor 
         exp_data$mz_calibrate[match_peak] = exp_data$mz[match_peak] - label_peak$diff_mz[label_peak$index_peak > 0]
-        exp_data$mz_calibrate[exp_data$type=="precursor_exp"] = 
-          exp_data$mz_calibrate[exp_data$type=="precursor_exp"] - ifelse(is.na(mz_diff[[optim_transfo]]), 0, mz_diff[[optim_transfo]])
         
         # Sum intensity for double match peaks
         exp_int = aggregate(intensity ~ mz_calibrate, data=exp_data, FUN=sum)

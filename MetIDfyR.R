@@ -407,8 +407,8 @@ for(row in 1:nrow(data_tsv)){
       # If needed fix the parent retention time
       if(length(parent) > 1){
         if( length(ref_ms2[[pol]]) == 3 && !is.na(ref_ms2[[pol]][3]) ){
-          parent = which.min( abs( BIG_TABLE$rt[parent] - ref_ms2[[pol]][[3]] ) )
-          parent_intensity[[pol]] = BIG_TABLE$intensity[parent]
+          good_parent = which.min( abs( BIG_TABLE$rt[parent] - ref_ms2[[pol]][[3]] ) )
+          parent_intensity[[pol]] = BIG_TABLE$intensity[parent[good_parent]]
         }else{
           parent_intensity[[pol]] = 0
           message("Info: Can't find the parent retention time (number of peaks > 1) in ", pol)
@@ -429,11 +429,12 @@ for(row in 1:nrow(data_tsv)){
     ratio_intensity[ratio_intensity>1] = 1
 
     # Compute Score and penalty based on the number of transformations
-    penalty = ifelse(1/sqrt(BIG_TABLE$nb_transfo) == Inf, 1, 1/sqrt(BIG_TABLE$nb_transfo))
+    penalty = ifelse(BIG_TABLE$nb_transfo == 0, 1, 1/sqrt(BIG_TABLE$nb_transfo))
+    BIG_TABLE$rintensity = ratio_intensity
     BIG_TABLE$score = round(
       penalty *
-        (1/2 * (BIG_TABLE$common_ms2_peak / 100 * BIG_TABLE$dotp_ms2)+
-           1/2 * (BIG_TABLE$abscore * ratio_intensity))
+        ( 1/2 * BIG_TABLE$common_ms2_peak / 100 * BIG_TABLE$dotp_ms2 +
+           1/2 * BIG_TABLE$abscore * ratio_intensity )
       , 3 )
     BIG_TABLE$score[BIG_TABLE$score == Inf] = 1
     BIG_TABLE = arrange(BIG_TABLE, desc(score))
