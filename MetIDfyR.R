@@ -347,7 +347,7 @@ for(row in 1:nrow(data_tsv)){
             perc_peak = 0
             # If there is ms2 data and there is at least 1 match with reference
             if(length(data_ms2) > 1 && nrow(data_ms2$match) > 0) {
-              nb_ref_peaks = length(which(data_ms2$data$type == "ref")) #number of reference peak except precursor
+              nb_ref_peaks = length(grep("ref", data_ms2$data$type)) #number of reference peak 
               perc_peak = round(max(data_ms2$match$index_peak) / nb_ref_peaks*100,2)
 
               ggp_tot = annotate_figure(ggp_tot, bottom = text_grob(
