@@ -502,7 +502,11 @@ getMS2Reference = function(){
         
         ms2_ref = close_match(precursorMz(ms_file[[pol]]), mz_ref, tolerance = wdw_mz_ms2/2)
         # Keep as reference the MS2 with the closest rtime
-        ms2_ref = ms2_ref[which.min(abs(rtime(ms_file[[pol]])[ms2_ref] - rt*60 ) )]
+        
+        ms2_ref = ms2_ref[close_match(rtime(ms_file[[pol]])[ms2_ref], rt*60, tolerance = 5)]
+
+        ms2_ref = ms2_ref[ which.max(unlist(lapply(ms2_ref, function(x) ms_file[[pol]][[x]]@tic))) ]
+        
         if(length(ms2_ref) > 0){
           ref_data[[pol]] = c(mz = list(tmp_mz), ms2 = ms_file[[pol]][[ms2_ref]], rt = rt)
         }
