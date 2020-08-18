@@ -299,6 +299,9 @@ for(row in 1:nrow(data_tsv)){
 
           ## Build plots
           group_ms = split(ms_data, ms_data$rtime)
+          
+          # Contain the SVG figures name to remove false positive
+          filenames = c()
 
           # For each chromatogram peak / retention time
           for(current_ms in group_ms) {
@@ -366,8 +369,10 @@ for(row in 1:nrow(data_tsv)){
             filename = paste0(current_formula, "_", unique(current_ms$index),"_",
                               ifelse(out_polarity=="POSNEG", pol, ""), "_", out_polarity,".svg")
             ggsave(file.path(plot_path, filename), ggp_tot)
+            
+            filenames = append(filenames, filename)
 
-          }
+          } # end for retention time
 
           peak_info = unique(ms_data[, c("rtime", "dotp", "rscore", "abscore", "peak_intensity", "index")])
           
@@ -375,11 +380,11 @@ for(row in 1:nrow(data_tsv)){
                                        cbind.data.frame(name = data$name, formula = current_formula, polarity = pol,
                                                         adduct = unique(plot_chromato$adduct), mz = round(min(plot_chromato$mz),5),
                                                         transfo = optim_transfo, diff = current_diff, rt = round(peak_info$rtime, 3),
-                                                        # dotp = round(peak_info$dotp, 3), rscore = round(peak_info$rscore, 3), 
                                                         abscore = round(peak_info$abscore, 3), dotp_ms2 = round(dotp_ms2, 3), 
                                                         common_ms2_peak = perc_common_peak, mono_ppm = mono_ppm,
                                                         intensity = peak_info$peak_intensity, index_peak = peak_info$index,
-                                                        nb_transfo = nb_transfo))
+                                                        nb_transfo = nb_transfo,
+                                                        filepath = plot_path, filename = filenames))
 
         } #end for polarity
 
@@ -446,10 +451,42 @@ for(row in 1:nrow(data_tsv)){
       if(length(true_isobare) > 0) BIG_TABLE = BIG_TABLE[-isobare[true_isobare],]
     }
     
-    BIG_TABLE$polarity = ifelse(BIG_TABLE$polarity == "plus", "Positive mode", "Negative mode")
+    BIG_TABLE[,c("formula", "filepath", "filename")] = apply(BIG_TABLE[,c("formula", "filepath", "filename")], 2, as.character)
+    # Group by RT and remove isotopes false positive
+    BIG_TABLE_FINAL = split(BIG_TABLE, BIG_TABLE$rt) %>%
+      lapply(function(current_rt){
+        
+        index = 1
+        while (index <= nrow(current_rt)) {
+          # Get the mono isotopic information
+          mol = getMolecule(current_rt$formula[index])
+          mz_iso = mol$isotopes[[1]][1, 2:6] + adduct[[current_rt$polarity[index]]]$mz + E_MASS[[current_rt$polarity[index]]]
+          # Search for false positive with MZ close to isotopes m/z
+          false_pos = unlist( lapply(mz_iso, function(iso) which(between(current_rt$mz, iso-iso/1e6*mz_ppm, iso+iso/1e6*mz_ppm))) )
+          
+          # Remove figures and tables for false positive
+          names = unlist(strsplit(current_rt$filename[false_pos], ".svg"))
+          file.remove(
+            list.files(path = unique(current_rt$filepath[false_pos]), pattern = paste0(names, collapse="|"), full.names = T)
+          )
+          # Save the results
+          if(length(false_pos) > 0){
+            current_rt = current_rt[-false_pos,]
+          }
+          index = index +1
+        }
+        
+        return(current_rt[,!names(current_rt) %in% c("filepath", "filename")])
+        
+      }) 
+    
+    BIG_TABLE_FINAL = do.call(rbind, BIG_TABLE_FINAL)
+    
+    
+    BIG_TABLE_FINAL$polarity = ifelse(BIG_TABLE_FINAL$polarity == "plus", "Positive mode", "Negative mode")
 
     # Write output table
-    BIG_TABLE %>%
+    BIG_TABLE_FINAL %>%
       write_tsv(paste0(out_current_mlc, "/out_", sub('\\..*$', '', basename(data$ms_file)), ".tsv"))
   }
 
