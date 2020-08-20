@@ -24,11 +24,15 @@ To test `MetIDfyR`, you can perform analyses using provided LGD-4033 and Cocaine
 ```
 unzip("input/LGD_DIA_peak-picked.mzML.zip",exdir = "input")
 unzip("input/U_H_COCA_peak-picked.mzML.zip",exdir = "input")
+unzip("input/S9_Diclofenac_PhI.zip",exdir = "input")
+unzip("input/S9_Diclofenac_PhII.zip",exdir = "input")
+unzip("input/S9_Diclofenac_std.zip",exdir = "input")
 ```
 4. Launch `MetIDfyR` from R console using :
 ```
 system("Rscript MetIDfyR.R -i input/lgd_DIA_peak-picked.tsv -o LGD4033_results -c input/config_LGD.R")
 system("Rscript MetIDfyR.R -i input/cocaine_peak-picked.tsv -o Cocaine_results -c input/config_cocaine.R")
+system("Rscript MetIDfyR.R -i input/diclofenac-picked.tsv -o Diclofenac_results -c input/config_diclofenac.R")
 ```
 5. When the run is done, open the file "ui.R" in MetApp directory and click "run app" to launch MetApp.
 6. Visualize and generate a PDF report using the "Visualization" tab in the app.
