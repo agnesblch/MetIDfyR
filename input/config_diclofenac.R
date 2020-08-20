@@ -2,7 +2,7 @@ list_transfo = "input/list_transfo.tsv"
 bool_phase_2 = TRUE
 lib_perso = ""  # give the personnal R library if needed
 nb_transformation = 3
-cores = 3  # if NA cores = number of available cores -1
+cores = NA  # if NA cores = number of available cores -1
 min_peak_intensity = 1e6
 mz_ppm = 5  # confidence m/z to search chromatogram
 rt_windows = 5  # windows size to consider a peak in chromatogram
