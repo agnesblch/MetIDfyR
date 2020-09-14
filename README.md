@@ -64,5 +64,4 @@ The SVG figures are printed in the report using the R package "magick" (https://
 
 ## Citation
 >Delcourt V, Barnabé A, Loup B, Garcia P, André F, Chabot B, Trévisiol S, Moulard Y, Popot M-A & Bailly-Chouriberry L -
-> *`MetIDfyR`, an Open-Source R Package to Decipher Small-Molecule Drugs Metabolism Through High Resolution Mass Spectrometry*. 2020. ChemRxiv. Preprint. https://doi.org/10.26434/chemrxiv.12368963.v1
-
+> *`MetIDfyR`, an Open-Source R Package to Decipher Small-Molecule Drugs Metabolism Through High Resolution Mass Spectrometry*. 2020. AnalChem. https://doi.org/10.1021/acs.analchem.0c02281
