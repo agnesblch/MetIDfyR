@@ -1,6 +1,16 @@
 # `MetIDfyR`
 `MetIDfyR` is an open-source, cross-platform and versatile R script to predict and detect metabolites in mass spectrometry data (mzML) based on the raw formula of the drug of interest.
 
+## How to get `MetIDfyR` ?
+To use `MetIDfyR` on your computer you need to clone the project from GitHub or by using Rstudio version control (preferred). You can also download it from GitHub or by using the following commands in R :
+```
+download.file(url = "https://github.com/agnesblch/MetIDfyR/archive/master.zip",
+              destfile = "MetIDfyR-master.zip")
+
+unzip('MetIDfyR-master.zip')
+setwd('MetIDfyR-master/')
+```
+
 ## Need : 
 - a configuration file with the parameter (see TEMPLATE_config.R). 
 - a mzML file containing the sample informations
