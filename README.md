@@ -26,9 +26,9 @@ system("Rscript MetIDfyR.R -i path-to-input-file -o output-directory -c config-f
 ```
 
 ## Example :
-To test `MetIDfyR`, you can perform analyses using provided LGD-4033 and Cocaine datasets. 
+To test `MetIDfyR`, you can perform analysis using provided LGD-4033, Cocaine and Diclofenac datasets. 
 
-1. Clone the `MetIDfyR` repository.
+1. Clone the `MetIDfyR` repository or download it from GitHub.
 2. Create a new R project in the `MetIDfyR` directory.
 3. Unzip the example datasets using the following command in R console :
 ```
@@ -45,7 +45,8 @@ system("Rscript MetIDfyR.R -i input/cocaine_peak-picked.tsv -o Cocaine_results -
 system("Rscript MetIDfyR.R -i input/diclofenac-picked.tsv -o Diclofenac_results -c input/config_diclofenac.R")
 ```
 5. When the run is done, open the file "ui.R" in MetApp directory and click "run app" to launch MetApp.
-6. Visualize and generate a PDF report using the "Visualization" tab in the app.
+6. In the "Visualization" panel open the output folder containing the file "out_....tsv".
+7. You can generate a PDF report containing the selected metabolites.
 
 ## Dependencies : 
 MetIDfyR was developed and tested on <a href="https://www.r-project.org/" title="More about R">R</a> version 3.6.1. 
