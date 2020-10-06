@@ -335,14 +335,14 @@ for(row in 1:nrow(data_tsv)){
                 data_ms2 = compareMS2(ms_file[[pol]], optim_transfo, mz_exp = unique(plot_chromato$mz)[1],
                                       rt_exp = unique(current_ms$rtime), exists_ref_ms2 = F, wdw_mz = wdw_mz_ms2)
                 ggp_ms2 = doMS2(data_ms2, exists_ref = F)
-                dotp_ms2 = c(dotp_ms2, 0)
+                dotp_ms2 = c(dotp_ms2, NA)
               }
               
               #final ggplot with chromatogram and mass spectrum
               ggp_tot = ggarrange(ggparr_ms, ggp_ms2, nrow=2)
             }else{
               data_ms2 = c()
-              dotp_ms2 = c(dotp_ms2, 0)
+              dotp_ms2 = c(dotp_ms2, NA)
               ggp_tot = ggparr_ms
             }
             
@@ -359,8 +359,9 @@ for(row in 1:nrow(data_tsv)){
 
             # Plot title
             ggp_tot = annotate_figure(ggp_tot, top = text_grob(
-              paste(data$name, ":", current_formula, adduct[[pol]]$formula,
-                    ifelse(pol == "plus", "+", "-"),
+              paste(data$name, ":", current_formula,
+                    ifelse(pol == "plus", "+", "-"), 
+                    adduct[[pol]]$formula,
                     "/ peak number", unique(current_ms$index))
               , size = 9))
 
@@ -408,20 +409,23 @@ for(row in 1:nrow(data_tsv)){
     # Search for parent signal in both polarities
     parent_intensity = list(plus="", minus="")
     for(pol in c("plus", "minus")){
-      parent = which(BIG_TABLE$nb_transfo==0 & BIG_TABLE$polarity==pol)
-      # If needed fix the parent retention time
-      if(length(parent) > 1){
-        if( length(ref_ms2[[pol]]) == 3 && !is.na(ref_ms2[[pol]][3]) ){
-          good_parent = which.min( abs( BIG_TABLE$rt[parent] - ref_ms2[[pol]][[3]] ) )
-          parent_intensity[[pol]] = BIG_TABLE$intensity[parent[good_parent]]
-        }else{
+      if(do[[plus]]){
+        parent = which(BIG_TABLE$nb_transfo==0 & BIG_TABLE$polarity==pol)
+        # If needed fix the parent retention time
+        if(length(parent) > 1){
+          if( length(ref_ms2[[pol]]) == 3 && !is.na(ref_ms2[[pol]][3]) ){
+            good_parent = which.min( abs( BIG_TABLE$rt[parent] - ref_ms2[[pol]][[3]] ) )
+            parent_intensity[[pol]] = BIG_TABLE$intensity[parent[good_parent]]
+          }else{
+            good_parent = which.max(BIG_TABLE$intensity[parent])
+            parent_intensity[[pol]] = BIG_TABLE$intensity[parent[good_parent]]
+          }
+        }else if(length(parent) == 0){
           parent_intensity[[pol]] = 0
-          message("Info: Can't find the parent retention time (number of peaks > 1) in ", pol)
+          message("No parent found for this molecule in ", pol)
+        }else{
+          parent_intensity[[pol]] = BIG_TABLE$intensity[parent]
         }
-      }else if(length(parent) == 0){
-        parent_intensity[[pol]] = 0
-      }else{
-        parent_intensity[[pol]] = BIG_TABLE$intensity[parent]
       }
     }
 
@@ -436,18 +440,26 @@ for(row in 1:nrow(data_tsv)){
     # Compute Score and penalty based on the number of transformations
     penalty = ifelse(BIG_TABLE$nb_transfo == 0, 1, 1/sqrt(BIG_TABLE$nb_transfo))
     BIG_TABLE$rintensity = ratio_intensity
-    BIG_TABLE$score = round(
-      penalty *
-        ( 1/2 * BIG_TABLE$common_ms2_peak / 100 * BIG_TABLE$dotp_ms2 +
-           1/2 * BIG_TABLE$abscore * ratio_intensity )
-      , 3 )
+    BIG_TABLE$score = ifelse(is.na(BIG_TABLE$dotp_ms2), 
+           # TRUE, only MS1 score
+           round(
+             penalty * ( BIG_TABLE$abscore * ratio_intensity )
+             , 3 ),
+           # FALSE, MS1/MS2 score
+           round(
+             penalty *
+               ( 1/2 * BIG_TABLE$common_ms2_peak / 100 * BIG_TABLE$dotp_ms2 +
+                   1/2 * BIG_TABLE$abscore * ratio_intensity )
+             , 3 ))
+    
     BIG_TABLE$score[BIG_TABLE$score == Inf] = 1
     BIG_TABLE = arrange(BIG_TABLE, desc(score))
     
     # Remove isobare (close M/Z)
     for(tab_row in 1:nrow(BIG_TABLE)){
       isobare = close_match(x= BIG_TABLE$mz, target=BIG_TABLE$mz[tab_row], tolerance = BIG_TABLE$mz[tab_row]/1e6*mz_ppm)
-      true_isobare = which(BIG_TABLE$formula[isobare] != BIG_TABLE$formula[tab_row])
+      true_isobare = which(BIG_TABLE$formula[isobare] != BIG_TABLE$formula[tab_row] & 
+                             BIG_TABLE$polarity[isobare] == BIG_TABLE$polarity[tab_row])
       if(length(true_isobare) > 0) BIG_TABLE = BIG_TABLE[-isobare[true_isobare],]
     }
     
