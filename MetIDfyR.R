@@ -409,7 +409,7 @@ for(row in 1:nrow(data_tsv)){
     # Search for parent signal in both polarities
     parent_intensity = list(plus="", minus="")
     for(pol in c("plus", "minus")){
-      if(do[[plus]]){
+      if(do[[pol]]){
         parent = which(BIG_TABLE$nb_transfo==0 & BIG_TABLE$polarity==pol)
         # If needed fix the parent retention time
         if(length(parent) > 1){
