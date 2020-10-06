@@ -230,7 +230,7 @@ shinyServer(function(input, output, session) {
     if(length(path()) > 0){
       output$header = renderText({ paste0("Currently open: ", unique(Product()$Name) ) })
     }else{
-      output$header = renderText({"Select a directory which contains the output figures and table for a parent drug in one mzML:"})
+      output$header = renderText({"Select the output folder containing the file \"out_...tsv\" :"})
     }
     
     

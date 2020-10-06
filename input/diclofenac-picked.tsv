@@ -1,0 +1,4 @@
+name	formula	adduct_plus	adduct_minus	ms_file	ms2_reference_tsv
+Diclofenac	C14 H11 Cl2 N O2	H	H	input/S9_Diclofenac_PhI.mzML	
+Diclofenac	C14 H11 Cl2 N O2	H	H	input/S9_Diclofenac_PhII.mzML	
+Diclofenac	C14 H11 Cl2 N O2	H	H	input/S9_Diclofenac_std.mzML	
