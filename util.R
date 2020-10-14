@@ -510,8 +510,12 @@ getMS2Reference = function(){
         if(length(ms2_ref) > 0){
           ref_data[[pol]] = c(mz = list(tmp_mz), ms2 = ms_file[[pol]][[ms2_ref]], rt = rt)
         }
+      }else{
+        message("No reference MS2 spectra found in ", pol)
       }
       
+    }else if( do[[pol]] && ! 2 %in% unique(msLevel(ms_file[[pol]])) ){
+      message("No reference MS2 spectra found in ", pol)
     }
   }
   
