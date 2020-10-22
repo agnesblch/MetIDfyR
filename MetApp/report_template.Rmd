@@ -47,7 +47,7 @@ myTheme2 <- gridExtra::ttheme_default(base_size = 15,
 
 for(metabo in 1:nrow(tab)){
   filename = list.files(path(), recursive = T, pattern = paste0("^", tab$Formula[metabo], "_", tab$Index[metabo], "_"))
-  if(length(filename) > 1) filename = grep(tab$Polarity[metabo], filename, value=T)
+  if(length(filename) > 1) filename = grep(ifelse(tab$Polarity[metabo]=="Positive mode", "plus", "minus"), filename, value=T)
   
   
   tabname = list.files(path(), recursive = T, pattern = paste0("table_", tab$Formula[metabo], "_", tab$Index[metabo], "_"))
