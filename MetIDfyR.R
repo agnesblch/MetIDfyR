@@ -157,7 +157,7 @@ for(row in 1:nrow(data_tsv)){
 
 
 
-### SEARCH REFERENCE MS2 ###
+  #### SEARCH REFERENCE MS2 ####
 
 
 
@@ -190,7 +190,7 @@ for(row in 1:nrow(data_tsv)){
       message("MS2 tsv provided doesn't exists, please check")
     }
   }
-  ref_ms2 = getMS2Reference()
+  ref_ms2 = getMS2Reference(names(do)[which(do==T)])
 
   cat(paste0("### Start foreach loop : ", length(unique(info_all_combi$Formula)), " metabolites ###\n"))
   
@@ -200,7 +200,7 @@ for(row in 1:nrow(data_tsv)){
   if(exists("ref_ms2_tsv")) file.copy(data$ms2_reference_tsv, paste0(out_current_mlc, "/input"))
 
 
-### PARALLEL LOOP ###
+  #### PARALLEL LOOP ####
   
 
   # OPEN CLUSTER
@@ -318,7 +318,7 @@ for(row in 1:nrow(data_tsv)){
             
             if( 2 %in% unique(msLevel(ms_file[[pol]])) ){
               # If there is a reference MS2
-              if(!is.na(ms2_ref)){
+              if(!is.null(ms2_ref)){
                 data_ms2 = compareMS2(ms_file[[pol]], optim_transfo, ms2_ref[[1]], mz_ref[[1]], unique(plot_chromato$mz),
                                       unique(current_ms$rtime), wdw_mz = wdw_mz_ms2, tol_mz = mz_ppm)
                 # If there is a signal in MS2

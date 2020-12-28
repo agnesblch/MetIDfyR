@@ -464,26 +464,37 @@ getChromato = function(ms_file, molecule, adduct, masse_electron,
 # Need : current molecule information
 # Return : list with the ms2 and mz of the parent drug in both polarities
 ###
-getMS2Reference = function(){
+getMS2Reference = function(polarities = c("plus", "minus")){
   ref_mlc = getMolecules(data$formula)
-  plot_chromato = c(minus=c(), plus=c()) ; ms_data = c(minus=c(), plus=c())
+  plot_chromato = list() ; ms_data = list() ; RT = list()
   
-  for(pol in c("minus", "plus")){
+  for(pol in polarities){
     if(do[[pol]]){
       plot_chromato[[pol]] = getChromato(ms_file[[pol]], ref_mlc, adduct[[pol]], E_MASS[[pol]], min_intensity = min_peak_intensity,
                                         mz_precision = mz_ppm, min_scan = nb_scan)
       ms_data[[pol]] = getMassSpectrum(ms_file[[pol]], ref_mlc, adduct[[pol]], plot_chromato[[pol]], E_MASS[[pol]], peak_wdw = rt_windows,
                                       min_intensity = min_peak_intensity)
     }
+    
+    if( !empty(ms_data[[pol]]) ) RT[[pol]] = unique(ms_data[[pol]]$rtime)
+    # Use given rtime if provided, else keep the max intensity peak
+    if(length(RT[[pol]]) > 1){
+      RT[[pol]] = RT[[pol]][which.max(unique(ms_data[[pol]]$peak_intensity))]
+    }
   }
   
+  # If there is pos and neg data && RT are different, keep the max TIC
+  if(length(RT) == 2 && round(RT$plus,2) != round(RT$minus, 2)){
+    ind_max = which.max(c(unique(ms_data$plus$peak_intensity[which(ms_data$plus$rtime == RT$plus)]),
+                        unique(ms_data$minus$peak_intensity[which(ms_data$minus$rtime == RT$minus)])))
+    RT[[polarities[-ind_max]]] = RT[[polarities[ind_max]]]
+  }
   
   # Search for MS2 reference in both polarities 
-  ref_data = list(plus = integer(), minus = integer())
-  for(pol in c("minus", "plus")){
+  ref_data = list(plus = c(), minus = c())
+  for(pol in polarities){
     if( do[[pol]] && 2 %in% unique(msLevel(ms_file[[pol]])) ){
-      
-      if( !empty(ms_data[[pol]]) ){ rt = unique(ms_data[[pol]]$rtime)}else rt = integer()
+      rt = RT[[pol]]
       
       tmp_mz = unique(plot_chromato[[pol]]$mz)
       mz_ref = tmp_mz[1]
@@ -495,11 +506,6 @@ getMS2Reference = function(){
         
       }else if( length(rt) >=1 ){
         
-        # Use given rtime if provided, else keep the max intensity peak
-        if(length(rt) > 1){
-          rt = rt[which.max(unique(ms_data[[pol]]$peak_intensity))]
-        }
-        
         ms2_ref = close_match(precursorMz(ms_file[[pol]]), mz_ref, tolerance = wdw_mz_ms2/2)
         # Keep as reference the MS2 with the closest rtime
         
@@ -508,7 +514,8 @@ getMS2Reference = function(){
         ms2_ref = ms2_ref[ which.max(unlist(lapply(ms2_ref, function(x) ms_file[[pol]][[x]]@tic))) ]
         
         if(length(ms2_ref) > 0){
-          ref_data[[pol]] = c(mz = list(tmp_mz), ms2 = ms_file[[pol]][[ms2_ref]], rt = rt)
+          ms2_ref = ms_file[[pol]][[ms2_ref]]
+          ref_data[[pol]] = c(mz = list(tmp_mz), ms2 = ms2_ref, rt = ms2_ref@rt/60)
         }
       }else{
         message("No reference MS2 spectra found in ", pol)
