@@ -16,44 +16,7 @@ shinyServer(function(input, output, session) {
   # # #
   ### Launcher Panel
   # # # 
-  
-  # Display template to save input TSV for the compound
-  tsv_template = as.data.frame(readr::read_tsv("../input/TEMPLATE_start_mlc.tsv"))
-  output$mlcTSV = DT::renderDataTable(tsv_template, selection = 'none', rownames = FALSE, editable=T, server=F)
-  proxy = dataTableProxy("mlcTSV")
-  
-  # Update the table when a cell is edited
-  observeEvent(input$mlcTSV_cell_edit, {
-    info = input$mlcTSV_cell_edit
-    i = info$row
-    j = info$col + 1
-    v = info$value
-    tsv_template[i, j] <<- DT:::coerceValue(v, tsv_template[i, j])
-  })
-  
-  # Add new row in table 
-  observeEvent(input$add, {
-    proxy %>% addRow(as.data.frame(readr::read_tsv("../input/TEMPLATE_start_mlc.tsv")))
-  })
-  
-  # Save the input TSV in the input directory
-  observeEvent(input$save, {
-    
-    readr::write_tsv(tsv_template, paste0("../input/", input$tsvname, ".tsv"))
-    
-    shinyalert(
-      title = "MetApp",
-      text = paste0("You saved ", input$tsvname, ".tsv in the input directory."),
-      html = FALSE,
-      type = "success",
-      showConfirmButton = TRUE,
-      confirmButtonText = "OK",
-      confirmButtonCol = "#AEDEF4",
-      timer = 0,
-      imageUrl = "",
-      animation = TRUE
-    )
-  })
+  callModule(titlePanelMod, id = "t1")
   
   # Rscript path
   shinyFileChoose(input, "Rscript", roots = c(home = normalizePath("/")))
@@ -109,9 +72,53 @@ shinyServer(function(input, output, session) {
   })
   
   # # #
+  ### Input Panel
+  # # #
+  
+  callModule(titlePanelMod, id = "t2")
+  # Display template to save input TSV for the compound
+  tsv_template = as.data.frame(readr::read_tsv("../input/TEMPLATE_start_mlc.tsv"))
+  output$mlcTSV = DT::renderDataTable(tsv_template, selection = 'none', rownames = FALSE, editable=T, server=F)
+  proxy = dataTableProxy("mlcTSV")
+  
+  # Update the table when a cell is edited
+  observeEvent(input$mlcTSV_cell_edit, {
+    info = input$mlcTSV_cell_edit
+    i = info$row
+    j = info$col + 1
+    v = info$value
+    tsv_template[i, j] <<- DT:::coerceValue(v, tsv_template[i, j])
+  })
+  
+  # Add new row in table 
+  observeEvent(input$add, {
+    proxy %>% addRow(as.data.frame(readr::read_tsv("../input/TEMPLATE_start_mlc.tsv")))
+  })
+  
+  # Save the input TSV in the input directory
+  observeEvent(input$save, {
+    
+    readr::write_tsv(tsv_template, paste0("../input/", input$tsvname, ".tsv"))
+    
+    shinyalert(
+      title = "MetApp",
+      text = paste0("You saved ", input$tsvname, ".tsv in the input directory."),
+      html = FALSE,
+      type = "success",
+      showConfirmButton = TRUE,
+      confirmButtonText = "OK",
+      confirmButtonCol = "#AEDEF4",
+      timer = 0,
+      imageUrl = "",
+      animation = TRUE
+    )
+  })
+  
+  # # #
   ### Configuration Panel
   # # #
   
+  callModule(titlePanelMod, id = "t3")
   configFields = c("lib_perso", "bool_phase_2", "cores", "nb_transformation", "min_peak_intensity", "mz_ppm", "rt_windows", 
                    "nb_scan", "wdw_mz_ms2", "minimum_mz")
   
@@ -199,6 +206,7 @@ shinyServer(function(input, output, session) {
   
 ### Visualization panel
   
+  callModule(titlePanelMod, id = "t4")
   shinyDirChoose(input, "dir", roots = c(home = normalizePath("~")))
   dir = reactive(input$dir)
   path = reactive({ 

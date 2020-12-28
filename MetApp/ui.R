@@ -7,8 +7,9 @@
 #    http://shiny.rstudio.com/
 #
 if(!"pacman" %in% installed.packages()) install.packages("pacman")
-pacman::p_load("shiny", "shinythemes", "shinyFiles", "DT", "shinyjs", "parallel", "shinyalert", "dplyr", "rclipboard","rmarkdown",
-               "rsvg")
+pacman::p_load("shiny", "shinythemes", "shinyFiles", "DT", "shinyjs", "parallel", "shinyalert", "dplyr", "rclipboard","rmarkdown", "rsvg")
+
+source("modules/titlePanelMod.R")
 
 labelMandatory <- function(label) {
   tagList(
@@ -27,7 +28,9 @@ navbarPage("MetApp for MetIDfyR",
            
 # Launcher for MetIDfyR
            tabPanel("Launcher",
-                    h2("Here you can launch MetIDfyR."),
+                    
+                    titlePanelUI(id = "t1", name = "MetIDfyR launcher"),
+                    
                     h4("Required :"),
                       p("-a TSV file (see Input tab)"),
                       p("-an output directory and an output name"),
@@ -64,7 +67,7 @@ navbarPage("MetApp for MetIDfyR",
            
 # Input file creation
            tabPanel("Input",
-                    h2("Input file generation"),
+                    titlePanelUI(id="t2", "Input file generation"),
                     h4("Fill the following table and save it if you don't have an input TSV."),
                     p("Double click to modify a value. The file will be saved in the input directory."),
                     p("Leave the cell EMPTY if there's nothing to put in."),
@@ -79,7 +82,8 @@ navbarPage("MetApp for MetIDfyR",
                     shinyjs::useShinyjs(),
                     useShinyalert(),
                     shinyjs::inlineCSS(mandatoryCSS),
-                    h2("Configuration file generation"),
+                    
+                    titlePanelUI(id="t3", "Configuration"),
                     h4("Please enter your parameters for MetIDfyR"),
                     h4("Responses will be saved as a R file in the input directory."),
                     fluidRow(id = "form",
@@ -120,7 +124,7 @@ navbarPage("MetApp for MetIDfyR",
 # Visualization of data
            tabPanel("Visualization",
                     # Application title
-                    titlePanel("Visualization of predicted metabolites"),
+                    titlePanelUI(id="t4", "Data visualization"),
                     h4("Here you can visualize the metabolites output produced by MetIDfyR"),
                     
                     fluidRow(column(5, tags$b("Comment area"),
