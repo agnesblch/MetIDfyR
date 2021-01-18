@@ -55,15 +55,22 @@ for(metabo in 1:nrow(tab)){
   
   if(length(tabname) == 1){
     tab_match = read_tsv(file.path(path(), tabname), col_types = cols()) 
-    num_cols = names(Filter(is.numeric, tab_match))
-    tab_match[num_cols] = apply(tab_match[num_cols], 2, function(x) round(x, 4) )
+    tab_match = tab_match[-which(tab_match$transfo == "No match"), ]
     
-    # Display the figure and the table of MS2 match, if it exists
-    grid.arrange(rasterGrob(readPNG(rsvg_png(file.path(path(), filename), height = 1500, width = 1500))), 
-                 tableGrob(tab_match, rows=NULL, theme=myTheme2),
-                 nrow=2, heights = c(10,5))
+    if(nrow(tab_match) > 0){
+      num_cols = names(Filter(is.numeric, tab_match))
+      tab_match[num_cols] = apply(tab_match[num_cols], 2, function(x) round(x, 4) )
+      
+      # Display the figure and the table of MS2 match, if it exists
+      grid.arrange(rasterGrob(readPNG(rsvg_png(file.path(path(), filename), height = 1500, width = 1500))), 
+                   tableGrob(tab_match, rows=NULL, theme=myTheme2),
+                   nrow=2, heights = c(10,5))
+    }else{
+      grid.arrange( rasterGrob(readPNG(rsvg_png(file.path(path(), filename), height = 1500, width = 1500))) )
+    }
+    
   }else{
-    grid.arrange( ggdraw()+draw_image(file.path(path(),filename)) )
+    grid.arrange( rasterGrob(readPNG(rsvg_png(file.path(path(), filename), height = 1500, width = 1500))) )
   }
   
 }
