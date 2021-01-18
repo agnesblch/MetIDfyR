@@ -88,8 +88,13 @@ for(row in 1:nrow(data_tsv)){
 
   cat(paste0("### Select combination for ", data$name, " ###\n"))
 
-  #check if phase 2 is performed
-  if(!bool_phase_2) transfo$possible[which(transfo$phase==2)] = FALSE
+  # Check which phase has to be predicted
+  if(bool_phase_1 | bool_phase_2){
+    transfo$possible[which(transfo$phase==1)] = bool_phase_1
+    transfo$possible[which(transfo$phase==2)] = bool_phase_2
+  }else{
+    stop("Please select at least phase 1 or phase 2 to predict metabolites")
+  }
 
   #check the presence of specifics atoms in the parent drug formula
   for(atom in c("N", "F", "Cl", "Br")){

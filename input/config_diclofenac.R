@@ -1,4 +1,5 @@
 list_transfo = "input/list_transfo.tsv"
+bool_phase_1 = TRUE
 bool_phase_2 = TRUE
 lib_perso = ""  # give the personnal R library if needed
 nb_transformation = 3
