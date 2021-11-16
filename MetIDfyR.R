@@ -3,6 +3,10 @@
 if(!"pacman" %in% installed.packages()) install.packages("pacman")
 pacman::p_load("BiocManager", "optparse")
 
+# Install dependencies from Bioconductor
+if(!"MSnbase" %in% installed.packages()) BiocManager::install("MSnbase")
+if(!"Rdisop" %in% installed.packages()) BiocManager::install("Rdisop")
+
 #### PARAMETERS ####
 
 option_list = list(
@@ -11,7 +15,7 @@ option_list = list(
   make_option(c("-o", "--output"), type="character",
               help="output directory", metavar="character"),
   make_option(c("-c", "--config"), type="character", default="input/config.R",
-              help="config path", metavar="character")
+              help="configuration file (see TEMPLATE_config.R)", metavar="character"),
 )
 
 opt_parser = OptionParser(option_list=option_list)
@@ -253,7 +257,7 @@ for(row in 1:nrow(data_tsv)){
       
       combine_plot_chromato = data.frame() ; combine_ms_data = data.frame()
       for(pol in c("minus", "plus")){
-        # MINUS : chromatogram and mass spectrum data
+        # Chromatogram and mass spectrum data
         if(do[[pol]]){
           plot_chromato = getChromato(ms_file[[pol]], current_mlc, adduct[[pol]], E_MASS[[pol]], min_intensity = min_peak_intensity,
                                             mz_precision = mz_ppm, min_scan = nb_scan, min_mz = minimum_mz)
