@@ -11,11 +11,14 @@ if(!"Rdisop" %in% installed.packages()) BiocManager::install("Rdisop")
 
 option_list = list(
   make_option(c("-i", "--input"), type="character",
-              help="input informations (see TEMPLATE_start_mlc.tsv)", metavar="character"),
-  make_option(c("-o", "--output"), type="character",
-              help="output directory", metavar="character"),
+              help="input informations (see TEMPLATE_start_mlc.tsv)", 
+              metavar="character"),
+  make_option(c("-o", "--output"), type="character", default = "out_MetIDfyR",
+              help="output directory", 
+              metavar="character"),
   make_option(c("-c", "--config"), type="character", default="input/config.R",
-              help="configuration file (see TEMPLATE_config.R)", metavar="character"),
+              help="configuration file (see TEMPLATE_config.R)", 
+              metavar="character")
 )
 
 opt_parser = OptionParser(option_list=option_list)
