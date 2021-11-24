@@ -49,7 +49,7 @@ system("Rscript MetIDfyR.R -i input/diclofenac-picked.tsv -o Diclofenac_results 
 7. You can generate a PDF report containing the selected metabolites.
 
 ## Dependencies : 
-MetIDfyR was developed and tested on <a href="https://www.r-project.org/" title="More about R">R</a> version 3.6.1. 
+MetIDfyR was developed and tested on <a href="https://www.r-project.org/" title="More about R">R</a> version 3.6.1. It works normally up to R version 4.0. 
 Pacman package is used to install all dependencies needed to run `MetIDfyR`.
 - pacman
 - BiocManager
