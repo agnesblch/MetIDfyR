@@ -1,5 +1,4 @@
 #### DEPENDENCIES ####
-
 if(!"pacman" %in% installed.packages()) install.packages("pacman")
 pacman::p_load("BiocManager", "optparse")
 
@@ -121,9 +120,7 @@ for(row in 1:nrow(data_tsv)){
   group = append(group, rep(1, nrow(combin_transfo)%%cores))
 
 
-
   #### Transformation ####
-
 
 
   cat(paste0("### Do transformation for ", data$name, " ###\n"))
@@ -137,11 +134,11 @@ for(row in 1:nrow(data_tsv)){
       }else{current_cmbn = combin_transfo[grp_index, ]}
       bool = check_combn(transfo, data, current_cmbn)
 
-      list_cmbn = current_cmbn[which(bool),]
+      list_cmbn = as.data.frame(current_cmbn[which(bool),])
 
       info_all_combi = getCombiFormula(data, transfo, list_cmbn)
 
-      as_tibble(do.call(rbind, info_all_combi))
+      do.call(rbind, info_all_combi)
     }else{
       tibble(Molecule = data$name, Transformation = data$name, Formula = gsub(" ", "", data$formula),
                  Diff = "", Nb_Transfo = 0)
@@ -190,7 +187,7 @@ for(row in 1:nrow(data_tsv)){
     #get adduct in pos
     adduct$plus = list(formula = data$adduct_plus,
                        mz = getMolecule(data$adduct_plus)$isotopes[[1]][1,1])
-    ms_file$plus = readMSData(data$ms_file,mode="onDisk") %>% filterPol(polarity = 1)
+    ms_file$plus = readMSData(data$ms_file, mode="onDisk") %>% filterPol(polarity = 1)
   }
 
    # If the parameter is not empty
@@ -203,7 +200,6 @@ for(row in 1:nrow(data_tsv)){
     }
   }
   ref_ms2 = getMS2Reference(names(do)[which(do==T)])
-
   cat(paste0("### Start foreach loop : ", length(unique(info_all_combi$Formula)), " metabolites ###\n"))
   
   # Save input for the current molecule
@@ -217,24 +213,16 @@ for(row in 1:nrow(data_tsv)){
 
   # OPEN CLUSTER
   cl_big = makeCluster(cores)
-  clusterApply(cl_big, 1:cores, opt, fun= function(x,opt){
-    source(opt$config)
-    source("util.R")
-    source("plot_functions.R")
-    library(pacman)
-    
-    p_load("tibble", "MSnbase", "plyr", "ggplot2", "ggpubr", "Rdisop", "dplyr", "ggrepel",
-           "stringr", "htmlwidgets", "readr")
-  })
   
   # Initialisation of cluster environnement : export variables and packages
   clusterExport(cl_big, ls())
-  
   registerDoParallel(cl_big) # do parallel analysis
   
   #Do in parallel chromatogram for the current molecule for each formula obtained
   
-  BIG_TABLE = foreach::foreach(current_formula = unique(info_all_combi$Formula), .combine = rbind ) %dopar% {
+  BIG_TABLE = foreach::foreach(current_formula = unique(info_all_combi$Formula), .combine = rbind,
+                               .packages = c("tibble", "MSnbase", "plyr", "ggplot2", "ggpubr", "Rdisop", "dplyr", "ggrepel",
+                                             "stringr", "htmlwidgets", "readr")) %dopar% {
     
     current_mlc = getMolecule(current_formula)
     
