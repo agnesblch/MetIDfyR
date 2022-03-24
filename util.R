@@ -116,14 +116,15 @@ replaceMolecules = function(formula, add, remove){
 ###
 
 getCombiFormula = function(data, transfo, list_cmbn){
-  info_all_combi = plyr::alply(list_cmbn, 1, function(cmbn) {
-    
-    molecule = getMolecules(data$formula)
+  
+  molecule = getMolecules(data$formula)
+  
+  result_combi = apply(list_cmbn, 1, function(cmbn) {
     
     # Init table with 0 transformation 
-    i=1 ; info_transfo = tibble(Molecule = data$name, Transformation = data$name, Formula = molecule$formula, 
-                                Diff = "", Nb_Transfo = 0)
-    
+    i=1 
+    info_transfo = tibble(Molecule = data$name, Transformation = data$name, Formula = molecule$formula, 
+                          Diff = "", Nb_Transfo = 0)
     
     continue_cmbn = check_combn(transfo, data, matrix(cmbn[1], nrow=1)) 
     #for each transformation of the combination
@@ -151,7 +152,7 @@ getCombiFormula = function(data, transfo, list_cmbn){
     }
     
   })
-  return(info_all_combi)
+  return(result_combi)
 }
 
 
@@ -432,7 +433,7 @@ getChromato = function(ms_file, molecule, adduct, masse_electron,
       mz_confidence = c(mz_adduct[iso]-mz_adduct[iso]/1e6*mz_precision,
                         mz_adduct[iso]+mz_adduct[iso]/1e6*mz_precision) #get mz interval
       
-      chrs <- chromatogram(ms_file, mz = mz_confidence, missing = 1) #extract chromatogram info
+      chrs <- chromatogram(ms_file, mz = mz_confidence, missing = 1, BPPARAM = BiocParallel::SerialParam()) #extract chromatogram info
       #if chromatogram for the polarity
       if(length(chrs) > 0){
         intensity_iso = chrs[[1]]@intensity
