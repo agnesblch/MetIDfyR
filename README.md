@@ -73,6 +73,8 @@ Shiny application to display resulting metabolites figures.
 This app saves PDF report for selected metabolites thanks to the packages "rmarkdown" and "rsvg". 
 The SVG figures are printed in the report using the R package "magick" (https://cran.rstudio.com/bin/windows/contrib/3.6/magick_2.3.zip). 
 
+You can find this application in the repository : https://github.com/agnesblch/MetApp
+
 ## Citation
 >Delcourt V, Barnabé A, Loup B, Garcia P, André F, Chabot B, Trévisiol S, Moulard Y, Popot M-A & Bailly-Chouriberry L -
 > *`MetIDfyR`, an Open-Source R Package to Decipher Small-Molecule Drugs Metabolism Through High Resolution Mass Spectrometry*. 2020. AnalChem. https://doi.org/10.1021/acs.analchem.0c02281
