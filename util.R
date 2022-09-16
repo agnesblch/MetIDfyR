@@ -4,6 +4,15 @@
 # # #
 
 ###
+# Get available cores in the system
+###
+availableCore = function(){
+  usedCores = system("top -b -n 1 1 | grep Cpu | cut -c 9-13", intern=T)
+  usedCores = as.numeric(gsub(",", ".", usedCores))
+  return(detectCores() - sum(usedCores > 80))
+}
+
+###
 # Estimate mass shift for each transformation
 # Need a list of transformation
 ###
@@ -116,15 +125,14 @@ replaceMolecules = function(formula, add, remove){
 ###
 
 getCombiFormula = function(data, transfo, list_cmbn){
-  
-  molecule = getMolecules(data$formula)
-  
-  result_combi = apply(list_cmbn, 1, function(cmbn) {
+  info_all_combi = plyr::alply(list_cmbn, 1, function(cmbn) {
+    
+    molecule = getMolecules(data$formula)
     
     # Init table with 0 transformation 
-    i=1 
-    info_transfo = tibble(Molecule = data$name, Transformation = data$name, Formula = molecule$formula, 
-                          Diff = "", Nb_Transfo = 0)
+    i=1 ; info_transfo = tibble(Molecule = data$name, Transformation = data$name, Formula = molecule$formula, 
+                                Diff = "", Nb_Transfo = 0)
+    
     
     continue_cmbn = check_combn(transfo, data, matrix(cmbn[1], nrow=1)) 
     #for each transformation of the combination
@@ -152,7 +160,7 @@ getCombiFormula = function(data, transfo, list_cmbn){
     }
     
   })
-  return(result_combi)
+  return(info_all_combi)
 }
 
 
@@ -433,7 +441,7 @@ getChromato = function(ms_file, molecule, adduct, masse_electron,
       mz_confidence = c(mz_adduct[iso]-mz_adduct[iso]/1e6*mz_precision,
                         mz_adduct[iso]+mz_adduct[iso]/1e6*mz_precision) #get mz interval
       
-      chrs <- chromatogram(ms_file, mz = mz_confidence, missing = 1, BPPARAM = BiocParallel::SerialParam()) #extract chromatogram info
+      chrs <- chromatogram(ms_file, mz = mz_confidence, missing = 1) #extract chromatogram info
       #if chromatogram for the polarity
       if(length(chrs) > 0){
         intensity_iso = chrs[[1]]@intensity
@@ -600,7 +608,7 @@ compareMS2 = function(ms_file, optim_transfo, ref_ms2, mz_ref, mz_exp, rt_exp, w
         names(mz_diff) = lapply(cmbn, function(x) paste0(x, collapse = ";"))
         mz_diff = mz_diff[!duplicated(mz_diff)]
         # add no transformation to list of m/z shift
-        mz_diff = append(mz_diff, list(no_transfo = 0))
+        mz_diff = append(mz_diff, list(None = 0))
         
         # Search for matching peak with each m/z difference
         for(id_diff in 1:length(mz_diff)){

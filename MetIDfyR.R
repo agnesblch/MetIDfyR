@@ -73,7 +73,7 @@ for(row in 1:nrow(data_tsv)){
   start=Sys.time()
 
   # Get number of available cores to fixe number of cores to use
-  freeCores = parallelly::availableCores()
+  freeCores = availableCore()
   cores = ifelse(cores >= freeCores, freeCores-1, cores)
   
   ##Launch cluster 
