@@ -1,4 +1,5 @@
 #### DEPENDENCIES ####
+
 if(!"pacman" %in% installed.packages()) install.packages("pacman")
 pacman::p_load("BiocManager", "optparse")
 
@@ -71,8 +72,11 @@ for(row in 1:nrow(data_tsv)){
 
   start=Sys.time()
 
-  ##Launch cluster with n-1 cores (n = number of available cores)
-  cores = ifelse(is.na(cores) | cores == "", detectCores()-1, cores)
+  # Get number of available cores to fixe number of cores to use
+  freeCores = parallelly::availableCores()
+  cores = ifelse(cores >= freeCores, freeCores-1, cores)
+  
+  ##Launch cluster 
   cl = makeCluster(cores)
   clusterApply(cl, 1:cores, opt, fun= function(x,opt){
     source(opt$config)
@@ -114,13 +118,15 @@ for(row in 1:nrow(data_tsv)){
   #Get all combinations with replacement
   #Check the feasibility of each combination
   combin_transfo = arrangements::combinations(which(transfo$possible), nb_transformation, replace=TRUE)
-
+  
   #Build groups by cores for foreach loop
   group = rep(1:cores, each=floor(nrow(combin_transfo)/cores))
   group = append(group, rep(1, nrow(combin_transfo)%%cores))
 
 
+
   #### Transformation ####
+
 
 
   cat(paste0("### Do transformation for ", data$name, " ###\n"))
@@ -128,17 +134,18 @@ for(row in 1:nrow(data_tsv)){
 
   info_all_combi = parLapply (cl, unique(group), function(current_grp){
 
+    # If there is at least one transformation
     if(ncol(combin_transfo) >= 1) {
       grp_index = which(group == current_grp)
       if(ncol(combin_transfo) == 1) {current_cmbn = as.data.frame(combin_transfo[grp_index, ])
       }else{current_cmbn = combin_transfo[grp_index, ]}
       bool = check_combn(transfo, data, current_cmbn)
 
-      list_cmbn = as.data.frame(current_cmbn[which(bool),])
+      list_cmbn = current_cmbn[which(bool),]
 
       info_all_combi = getCombiFormula(data, transfo, list_cmbn)
 
-      do.call(rbind, info_all_combi)
+      as_tibble(do.call(rbind, info_all_combi))
     }else{
       tibble(Molecule = data$name, Transformation = data$name, Formula = gsub(" ", "", data$formula),
                  Diff = "", Nb_Transfo = 0)
@@ -169,7 +176,8 @@ for(row in 1:nrow(data_tsv)){
   #### SEARCH REFERENCE MS2 ####
 
 
-
+  
+  cat(paste0("### Reading ", data$ms_file, "\n"))
   cat("### Get reference MS2 ###\n")
 
   # Load mzML files and adduct info
@@ -200,6 +208,7 @@ for(row in 1:nrow(data_tsv)){
     }
   }
   ref_ms2 = getMS2Reference(names(do)[which(do==T)])
+
   cat(paste0("### Start foreach loop : ", length(unique(info_all_combi$Formula)), " metabolites ###\n"))
   
   # Save input for the current molecule
@@ -213,16 +222,24 @@ for(row in 1:nrow(data_tsv)){
 
   # OPEN CLUSTER
   cl_big = makeCluster(cores)
+  clusterApply(cl_big, 1:cores, opt, fun= function(x,opt){
+    source(opt$config)
+    source("util.R")
+    source("plot_functions.R")
+    library(pacman)
+    
+    p_load("tibble", "MSnbase", "plyr", "ggplot2", "ggpubr", "Rdisop", "dplyr", "ggrepel",
+           "stringr", "htmlwidgets", "readr")
+  })
   
   # Initialisation of cluster environnement : export variables and packages
   clusterExport(cl_big, ls())
+  
   registerDoParallel(cl_big) # do parallel analysis
   
   #Do in parallel chromatogram for the current molecule for each formula obtained
   
-  BIG_TABLE = foreach::foreach(current_formula = unique(info_all_combi$Formula), .combine = rbind,
-                               .packages = c("tibble", "MSnbase", "plyr", "ggplot2", "ggpubr", "Rdisop", "dplyr", "ggrepel",
-                                             "stringr", "htmlwidgets", "readr")) %dopar% {
+  BIG_TABLE = foreach::foreach(current_formula = unique(info_all_combi$Formula), .combine = rbind ) %dopar% {
     
     current_mlc = getMolecule(current_formula)
     
