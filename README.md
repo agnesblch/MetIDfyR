@@ -1,3 +1,6 @@
+![metidfyr_300px](https://user-images.githubusercontent.com/44233550/202466223-ca5d2c08-2e8c-4452-afda-e69e9bdf1480.png)
+
+
 # `MetIDfyR`
 `MetIDfyR` is an open-source, cross-platform and versatile R script to predict and detect metabolites in mass spectrometry data (mzML) based on the raw formula of the drug of interest.
 
