@@ -7,9 +7,15 @@
 # Get available cores in the system
 ###
 availableCore = function(){
-  usedCores = system("top -b -n 1 1 | grep Cpu | cut -c 9-13", intern=T)
-  usedCores = as.numeric(gsub(",", ".", usedCores))
-  return(detectCores() - sum(usedCores > 80))
+  # If on Windows, simply search for the number of cores on the device
+  if(.Platform$OS.type == "windows"){
+    parallel::detectCores()
+  # Else, use top to get free cores
+  }else{
+    usedCores = system("top -b -n 1 1 | grep Cpu | cut -c 9-13", intern=T)
+    usedCores = as.numeric(gsub(",", ".", usedCores))
+    return(detectCores() - sum(usedCores > 80))
+  }
 }
 
 ###
