@@ -131,6 +131,7 @@ replaceMolecules = function(formula, add, remove){
 ###
 
 getCombiFormula = function(data, transfo, list_cmbn){
+  
   info_all_combi = plyr::alply(list_cmbn, 1, function(cmbn) {
     
     molecule = getMolecules(data$formula)
@@ -141,7 +142,7 @@ getCombiFormula = function(data, transfo, list_cmbn){
     
     
     continue_cmbn = check_combn(transfo, data, matrix(cmbn[1], nrow=1)) 
-    #for each transformation of the combination
+    # for each transformation of the combination
     # while i <= number of transformations, combinaison is valid and the number of phase 2 transformation is <= 2
     while(i <= length(cmbn) & continue_cmbn & sum(transfo$phase[cmbn[1:i]]==2) <= 2){
       index=cmbn[i]
@@ -152,8 +153,10 @@ getCombiFormula = function(data, transfo, list_cmbn){
                            'replace' = replaceMolecules(info_transfo$Formula[i], getMolecules(transfo$add[index])$formula, 
                                                         getMolecules(transfo$remove[index])$formula)
       )
+      
       info_transfo = info_transfo %>% add_row(Molecule = data$name, Transformation = paste0(transfo$name[cmbn[1:i]], collapse = ";"),
-                                              Formula = res_transfo$formula, Diff = getCount(transfo, data, cmbn[1:i], "difference"), 
+                                              Formula = res_transfo$formula, 
+                                              Diff = getCount(transfo, data, cmbn[1:i], "difference"), 
                                               Nb_Transfo = i )
       
       i=i+1
@@ -161,7 +164,7 @@ getCombiFormula = function(data, transfo, list_cmbn){
       continue_cmbn = check_combn(transfo, data, matrix(cmbn[1:i], nrow=1))
     }
     
-    if(continue_cmbn){
+    if(nrow(info_transfo)){
       return(info_transfo)
     }
     
@@ -207,13 +210,14 @@ getType = function(transfo){
 }
 
 ###
-# Check if the combinations of transformations are possible
+# Get the formula after transformation
 # Need : table with transformations informations, table with current molecule composition 
 #   the combination selected and the response type
-# Return : the new composition after combination OR a string with the difference in formula
+# Return : the new composition after combination 
+#   OR a string with the composition difference between formula
 ###
 
-getCount = function(transfo, data_count, cmbn, response = c("boolean", "difference")){
+getCount = function(transfo, data_count, cmbn, response = c("compo", "difference")){
   
   # Get number of atoms to add and remove
   remove_trans = paste0(transfo[cmbn,]$remove, collapse=" ") #remove transformation
@@ -234,7 +238,7 @@ getCount = function(transfo, data_count, cmbn, response = c("boolean", "differen
   data_count[remove_count$ind] = data_count[remove_count$ind] - remove_count$values
   data_count[add_count$ind] = data_count[add_count$ind] + add_count$values
   
-  if(response == "boolean"){
+  if(response == "compo"){
     
     if("NA" %in% names(data_count)) data_count = subset(data_count, select=-c(`NA`))
     return( data_count )
@@ -259,6 +263,38 @@ getCount = function(transfo, data_count, cmbn, response = c("boolean", "differen
   
 }
 
+
+###
+# List all possible combination of transformations with the resulting formula, 
+# the composition difference and the number of transformation.
+###
+createCombiTable = function(current_grp, current_data){
+  # If there is at least one transformation
+  if(ncol(combin_transfo) >= 1) {
+    grp_index = which(group == current_grp)
+    if(ncol(combin_transfo) == 1) {
+      current_cmbn = as.data.frame(combin_transfo[grp_index, ])
+    }else if(nrow(combin_transfo) == 1){
+      current_cmbn = rbind(combin_transfo[grp_index, ])
+    }else{
+      current_cmbn = combin_transfo[grp_index, ]
+    }
+    bool = check_combn(transfo, current_data, current_cmbn)
+    
+    list_cmbn = current_cmbn[which(bool),]
+    
+    info_all_combi = getCombiFormula(current_data, transfo, current_cmbn)
+    
+    as_tibble(do.call(rbind, info_all_combi))
+  }else{
+    tmp = tibble(Molecule = current_data$name, Transformation = current_data$name, Formula = gsub(" ", "", current_data$formula),
+                 Diff = "", Nb_Transfo = 0)
+    
+    tmp
+  }
+  
+}
+
 ###
 # Check if the combinations of transformations are possible
 # Need : table with transformations informations, table with current molecule composition 
@@ -271,7 +307,7 @@ check_combn = function(transfo, data, combin){
   do_combn = apply(combin, 1, function(cmbn){
     
     #return boolean, TRUE if there is no negative count so the combination is possible
-    tab_count = getCount(transfo, data, cmbn, "boolean")
+    tab_count = getCount(transfo, data, cmbn, "compo")
     return( sum(Filter(is.numeric, tab_count) < 0) == 0 )
     
   })
@@ -479,7 +515,7 @@ getChromato = function(ms_file, molecule, adduct, masse_electron,
 # Need : current molecule information
 # Return : list with the ms2 and mz of the parent drug in both polarities
 ###
-getMS2Reference = function(polarities = c("plus", "minus")){
+getMS2Reference = function(data, polarities = c("plus", "minus")){
   ref_mlc = getMolecules(data$formula)
   plot_chromato = list() ; ms_data = list() ; RT = list()
   

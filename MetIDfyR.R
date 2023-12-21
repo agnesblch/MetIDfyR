@@ -63,7 +63,7 @@ transfo_init$phase = as.factor(transfo_init$phase)
 transfo_init$type = getType(transfo_init)
 
 # print config
-cat("### CONFIGURATION ###\n")
+cat("### Configuration ###\n")
 writeLines(readLines(opt$config))
 cat("\n")
 
@@ -72,6 +72,47 @@ for(row in 1:nrow(data_tsv)){
 
   start=Sys.time()
 
+  transfo = transfo_init ; transfo$possible = TRUE
+  current_target = data_tsv[row, ] ; do = c()
+  do$plus = !is.na(current_target$adduct_plus) ; do$minus = !is.na(current_target$adduct_minus)
+  if(!do$plus) current_target$adduct_plus = FALSE ; if(!do$minus) current_target$adduct_minus = FALSE
+  if(is.na(current_target$ms2_reference_tsv)) current_target$ms2_reference_tsv = FALSE
+
+  
+  #### Possible transformation ####
+
+  
+  cat(paste0("### Select combination for ", current_target$name, " ###\n"))
+  
+  # Check which phase has to be predicted
+  if(bool_phase_1 | bool_phase_2){
+    transfo$possible[which(transfo$phase==1)] = bool_phase_1
+    transfo$possible[which(transfo$phase==2)] = bool_phase_2
+  }else{
+    stop("Please select at least phase 1 or phase 2 to predict metabolites")
+  }
+
+  # Check the presence of specifics atoms in the parent drug formula
+  for(atom in c("N", "F", "Cl", "Br")){
+    # if the atom is not present in the parent drug formula, then it can't be remove
+    if(!atom %in% colnames(current_target)){
+      row_atom=grep(atom, transfo$remove)
+      transfo$possible[row_atom] = FALSE
+    }
+  }
+  
+  
+  #### Transformation ####
+  
+  
+  # Get all combinations with replacement
+  # Check the feasibility of each combination
+  combin_transfo = arrangements::combinations(which(transfo$possible), nb_transformation, replace=TRUE)
+  
+  #Build groups by cores for foreach loop
+  group = rep(1:cores, each=floor(nrow(combin_transfo)/cores))
+  group = append(group, rep(1, nrow(combin_transfo)%%cores))
+  
   # Get number of available cores to fixe number of cores to use
   freeCores = availableCore()
   cores = ifelse(cores >= freeCores, freeCores-1, cores)
@@ -83,89 +124,31 @@ for(row in 1:nrow(data_tsv)){
     source("util.R")
     source("plot_functions.R")
     library(pacman)
-    p_load("tibble", "MSnbase", "plyr", "ggplot2", "ggpubr", "Rdisop", "dplyr", "ggrepel",
-           "stringr", "htmlwidgets", "readr")
+    p_load("tibble", "MSnbase", "plyr", "Rdisop", "dplyr", 
+           "stringr", "htmlwidgets", "readr", "reticulate")
   })
-
-  transfo = transfo_init ; transfo$possible = TRUE
-  data = data_tsv[row, ] ; do = c()
-  do$plus = !is.na(data$adduct_plus) ; do$minus = !is.na(data$adduct_minus)
-  if(!do$plus) data$adduct_plus = FALSE ; if(!do$minus) data$adduct_minus = FALSE
-  if(is.na(data$ms2_reference_tsv)) data$ms2_reference_tsv = FALSE
   
 
-  #### Possible transformation ####
-
-  cat(paste0("### Select combination for ", data$name, " ###\n"))
-
-  # Check which phase has to be predicted
-  if(bool_phase_1 | bool_phase_2){
-    transfo$possible[which(transfo$phase==1)] = bool_phase_1
-    transfo$possible[which(transfo$phase==2)] = bool_phase_2
-  }else{
-    stop("Please select at least phase 1 or phase 2 to predict metabolites")
-  }
-
-  #check the presence of specifics atoms in the parent drug formula
-  for(atom in c("N", "F", "Cl", "Br")){
-    # if the atom is not present in the parent drug formula, then it can't be remove
-    if(!atom %in% colnames(data)){
-      row_atom=grep(atom, transfo$remove)
-      transfo$possible[row_atom] = FALSE
-    }
-  }
-
-  #Get all combinations with replacement
-  #Check the feasibility of each combination
-  combin_transfo = arrangements::combinations(which(transfo$possible), nb_transformation, replace=TRUE)
-  
-  #Build groups by cores for foreach loop
-  group = rep(1:cores, each=floor(nrow(combin_transfo)/cores))
-  group = append(group, rep(1, nrow(combin_transfo)%%cores))
-
-
-
-  #### Transformation ####
-
-
-
-  cat(paste0("### Do transformation for ", data$name, " ###\n"))
+  cat(paste0("### Do transformation for ", current_target$name, " ###\n"))
   clusterExport(cl, ls())
 
-  info_all_combi = parLapply (cl, unique(group), function(current_grp){
-
-    # If there is at least one transformation
-    if(ncol(combin_transfo) >= 1) {
-      grp_index = which(group == current_grp)
-      if(ncol(combin_transfo) == 1) {current_cmbn = as.data.frame(combin_transfo[grp_index, ])
-      }else{current_cmbn = combin_transfo[grp_index, ]}
-      bool = check_combn(transfo, data, current_cmbn)
-
-      list_cmbn = current_cmbn[which(bool),]
-
-      info_all_combi = getCombiFormula(data, transfo, list_cmbn)
-
-      as_tibble(do.call(rbind, info_all_combi))
-    }else{
-      tibble(Molecule = data$name, Transformation = data$name, Formula = gsub(" ", "", data$formula),
-                 Diff = "", Nb_Transfo = 0)
-    }
-  })
-  info_all_combi = unique(do.call(rbind, info_all_combi))
+  current_res = parLapply(cl, unique(group), createCombiTable, current_target)
+  info_all_combi = unique(do.call(rbind, current_res))
+  
   
   # Close cluster
   stopCluster(cl)
   closeAllConnections()
-
+  
 
   #### Chromatogram : check signal for each metabolites ####
 
-  cat(paste0("### Start chromatogram for ", data$name, " ###\n"))
+  cat(paste0("### Start chromatogram for ", current_target$name, " ###\n"))
 
   cat("### Create Directories ###\n")
 
   #Create output directories in the working directory for the current molecule
-  out_current_mlc = paste0(opt$output, "/out_", data$name, "_", sub('\\..*$', '', basename(data$ms_file)), 
+  out_current_mlc = paste0(opt$output, "/out_", current_target$name, "_", sub('\\..*$', '', basename(current_target$ms_file)), 
                            "_", format(Sys.time(), "%d%m%y_%H%M"))
 
   lapply( c("/", "/POS", "/NEG", "/POSNEG", "/input"),
@@ -177,44 +160,44 @@ for(row in 1:nrow(data_tsv)){
 
 
   
-  cat(paste0("### Reading ", data$ms_file, "\n"))
+  cat(paste0("### Reading ", current_target$ms_file, "\n"))
   cat("### Get reference MS2 ###\n")
 
   # Load mzML files and adduct info
   ms_file = c() ; adduct = c()
   if(do$minus){
     #get adduct in neg
-    adduct$minus = list(formula = data$adduct_minus,
-                        mz = ifelse(data$adduct_minus=="H",
-                                    -getMolecule(data$adduct_minus)$isotopes[[1]][1,1],
-                                    getMolecule(data$adduct_minus)$isotopes[[1]][1,1]))
-    ms_file$minus = readMSData(data$ms_file, mode="onDisk") %>% filterPol(polarity = 0)
+    adduct$minus = list(formula = current_target$adduct_minus,
+                        mz = ifelse(current_target$adduct_minus=="H",
+                                    -getMolecule(current_target$adduct_minus)$isotopes[[1]][1,1],
+                                    getMolecule(current_target$adduct_minus)$isotopes[[1]][1,1]))
+    ms_file$minus = readMSData(current_target$ms_file, mode="onDisk") %>% filterPol(polarity = 0)
   }
 
   if(do$plus){
     #get adduct in pos
-    adduct$plus = list(formula = data$adduct_plus,
-                       mz = getMolecule(data$adduct_plus)$isotopes[[1]][1,1])
-    ms_file$plus = readMSData(data$ms_file, mode="onDisk") %>% filterPol(polarity = 1)
+    adduct$plus = list(formula = current_target$adduct_plus,
+                       mz = getMolecule(current_target$adduct_plus)$isotopes[[1]][1,1])
+    ms_file$plus = readMSData(current_target$ms_file, mode="onDisk") %>% filterPol(polarity = 1)
   }
 
    # If the parameter is not empty
-  if(data$ms2_reference_tsv != FALSE ) {
-    if(file.exists(data$ms2_reference_tsv)){
-      ref_ms2_tsv = read_tsv(data$ms2_reference_tsv, col_types = cols())
+  if(current_target$ms2_reference_tsv != FALSE ) {
+    if(file.exists(current_target$ms2_reference_tsv)){
+      ref_ms2_tsv = read_tsv(current_target$ms2_reference_tsv, col_types = cols())
       ref_ms2_tsv$polarity = ifelse(ref_ms2_tsv$intensity > 0, "plus", "minus")
     }else{
       message("MS2 tsv provided doesn't exists, please check")
     }
   }
-  ref_ms2 = getMS2Reference(names(do)[which(do==T)])
+  ref_ms2 = getMS2Reference(current_target, names(do)[which(do==T)])
 
   cat(paste0("### Start foreach loop : ", length(unique(info_all_combi$Formula)), " metabolites ###\n"))
   
   # Save input for the current molecule
   file.copy(opt$config, paste0(out_current_mlc, "/input"))
   write_tsv(data_tsv[row, c(1:6)], paste0(out_current_mlc, "/input/molecule.tsv"))
-  if(exists("ref_ms2_tsv")) file.copy(data$ms2_reference_tsv, paste0(out_current_mlc, "/input"))
+  if(exists("ref_ms2_tsv")) file.copy(current_target$ms2_reference_tsv, paste0(out_current_mlc, "/input"))
 
 
   #### PARALLEL LOOP ####
@@ -376,7 +359,7 @@ for(row in 1:nrow(data_tsv)){
 
             # Plot title
             ggp_tot = annotate_figure(ggp_tot, top = text_grob(
-              paste(data$name, ":", current_formula,
+              paste(current_target$name, ":", current_formula,
                     ifelse(pol == "plus", "+", "-"), 
                     adduct[[pol]]$formula,
                     "/ peak number", unique(current_ms$index))
@@ -395,7 +378,9 @@ for(row in 1:nrow(data_tsv)){
           peak_info = unique(ms_data[, c("rtime", "dotp", "rscore", "abscore", "peak_intensity", "index")])
           
           tmp_table = rbind.data.frame(tmp_table,
-                                       cbind.data.frame(name = data$name, formula = current_formula, polarity = pol,
+                                       cbind.data.frame(name = current_target$name, formula = current_formula, 
+                                                        # smiles = paste(metabo_smiles, collapse = ";"), 
+                                                        polarity = pol,
                                                         adduct = unique(plot_chromato$adduct), mz = round(min(plot_chromato$mz),5),
                                                         transfo = optim_transfo, diff = current_diff, rt = round(peak_info$rtime, 3),
                                                         abscore = round(peak_info$abscore, 3), dotp_ms2 = round(dotp_ms2, 3), 
@@ -403,7 +388,7 @@ for(row in 1:nrow(data_tsv)){
                                                         intensity = peak_info$peak_intensity, index_peak = peak_info$index,
                                                         nb_transfo = nb_transfo,
                                                         filepath = plot_path, filename = filenames))
-
+          
         } #end for polarity
 
         tmp_table
@@ -508,11 +493,11 @@ for(row in 1:nrow(data_tsv)){
 
     # Write output table
     BIG_TABLE_FINAL %>%
-      write_tsv(paste0(out_current_mlc, "/out_", sub('\\..*$', '', basename(data$ms_file)), ".tsv"))
+      write_tsv(paste0(out_current_mlc, "/out_", sub('\\..*$', '', basename(current_target$ms_file)), ".tsv"))
   }
 
   stop=Sys.time()
 
-  cat(paste("### Execution time :", data$name, round(difftime(stop, start, units="mins"),2), "mins ###\n"))
+  cat(paste("### Execution time :", current_target$name, round(difftime(stop, start, units="mins"),2), "mins ###\n"))
 
 } #end for loop
