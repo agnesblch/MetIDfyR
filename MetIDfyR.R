@@ -109,13 +109,13 @@ for(row in 1:nrow(data_tsv)){
   # Check the feasibility of each combination
   combin_transfo = arrangements::combinations(which(transfo$possible), nb_transformation, replace=TRUE)
   
+  # Get number of available cores to fixe number of cores to use
+  freeCores = availableCore()
+  cores = ifelse(cores >= freeCores | is.na(cores), freeCores-1, cores)
+  
   #Build groups by cores for foreach loop
   group = rep(1:cores, each=floor(nrow(combin_transfo)/cores))
   group = append(group, rep(1, nrow(combin_transfo)%%cores))
-  
-  # Get number of available cores to fixe number of cores to use
-  freeCores = availableCore()
-  cores = ifelse(cores >= freeCores, freeCores-1, cores)
   
   ##Launch cluster 
   cl = makeCluster(cores)
