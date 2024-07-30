@@ -283,7 +283,7 @@ createCombiTable = function(current_grp, current_data){
     
     list_cmbn = current_cmbn[which(bool),]
     
-    info_all_combi = getCombiFormula(current_data, transfo, current_cmbn)
+    info_all_combi = getCombiFormula(current_data, transfo, list_cmbn)
     
     as_tibble(do.call(rbind, info_all_combi))
   }else{
